@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Library | Called to Create</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Bebas Neue (Heading) & Decalotype (Sans/Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Decalotype:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              forest: '#132519', // Primary Forest Night
+              frost: '#98A869',  // Primary Frost Green
+              gray: '#212121',   // Secondary Dark Gray
+              white: '#FFFFFF',  // Secondary White
+            }
+          },
+          fontFamily: {
+            heading: ['"Bebas Neue"', 'sans-serif'],
+            sans: ['Decalotype', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-brand-forest text-brand-white font-sans antialiased selection:bg-brand-frost selection:text-brand-forest min-h-screen flex flex-col relative bg-[url('Background.png')] bg-repeat bg-center">
+
+  <!-- Subtle Dark Overlay -->
+  <div class="fixed inset-0 bg-brand-forest/95 pointer-events-none -z-10"></div>
+
+  <!-- Promo Top Banner -->
+  <div class="bg-brand-frost text-brand-forest text-center py-2 px-4 text-xs sm:text-sm font-semibold tracking-wide">
+    New members: Get 7 days of Premium platform access for free!
+  </div>
+
+  <!-- Header / Navigation -->
+  <header class="flex flex-col md:flex-row justify-between items-center px-6 md:px-10 py-4 border-b border-brand-gray/60 gap-4 sticky top-0 bg-brand-forest/95 backdrop-blur-md z-40">
+    <div class="flex items-center space-x-6">
+      <a href="index.html" class="inline-block transition-transform hover:scale-105">
+        <img 
+          src="C2C Logo (White).png" 
+          alt="Called to Create Logo" 
+          class="h-12 md:h-16 w-auto object-contain transition-all"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+        />
+        <div class="text-3xl font-heading tracking-widest text-brand-white hover:text-brand-frost transition-colors hidden">
+          CALLED TO CREATE
+        </div>
+      </a>
+    </div>
+
+    <!-- Navigation Links -->
+   <nav class="flex items-center space-x-6 text-sm font-medium">
+      <a href="index.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs font-sans">
+        Home
+      </a>
+      <a href="explore.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs font-sans">
+        Explore
+      </a>
+      <a href="shop.html" class="text-brand-frost font-bold border-b-2 border-brand-frost pb-0.5 text-xs font-sans">
+        Digital Assets
+      </a>
+      <a href="library.html" class="bg-brand-frost text-brand-forest px-6 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs">
+        My Library
+      </a>
+    </nav>
+  </header>
+
+  <!-- Main Dashboard Container -->
+  <main class="max-w-7xl mx-auto w-full px-6 md:px-10 py-10 flex-grow space-y-10">
+    
+    <!-- User Welcome & Stats Summary Header -->
+    <div class="bg-brand-gray border border-gray-800 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div class="space-y-2">
+        <span class="text-xs text-brand-frost font-bold uppercase tracking-widest block font-sans">
+          Learner Dashboard
+        </span>
+        <h1 class="text-3xl md:text-4xl font-heading tracking-wide text-brand-white">
+          Welcome Back!
+        </h1>
+        <p class="text-xs text-gray-400 font-sans">
+          Manage your active learning modules, downloaded LUTs, project presets, and templates.
+        </p>
+      </div>
+
+      <!-- Quick Stats Cards -->
+      <div class="flex items-center gap-4 w-full md:w-auto">
+        <div class="bg-black/40 border border-gray-800 rounded-2xl px-5 py-3 text-center flex-1 md:flex-initial">
+          <span class="block text-xl font-heading text-brand-frost">2</span>
+          <span class="text-[10px] text-gray-400 font-sans uppercase tracking-wider">Enrolled Courses</span>
+        </div>
+        <div class="bg-black/40 border border-gray-800 rounded-2xl px-5 py-3 text-center flex-1 md:flex-initial">
+          <span class="block text-xl font-heading text-brand-frost">5</span>
+          <span class="text-[10px] text-gray-400 font-sans uppercase tracking-wider">Saved Assets</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Continue Learning Hero Spotlight -->
+    <div class="bg-gradient-to-r from-brand-forest via-brand-gray to-black border border-brand-frost/40 rounded-3xl p-8 space-y-6 relative overflow-hidden shadow-2xl">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div class="space-y-3 max-w-2xl">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-brand-frost animate-pulse"></span>
+            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest font-sans">In Progress • Lesson 3 of 8</span>
+          </div>
+          <h2 class="text-3xl font-heading tracking-wide text-brand-white">
+            DaVinci Resolve Dark Moody Grade Setup
+          </h2>
+          <p class="text-xs text-gray-300 font-sans leading-relaxed">
+            Next up: non-destructive node tree balancing, high-contrast exposure tuning, and preserving shadow detail in low-light documentary footage.
+          </p>
+        </div>
+        <a href="course.html" class="bg-brand-frost text-brand-forest font-bold px-8 py-3 rounded-2xl text-xs hover:bg-opacity-90 transition-all transform hover:scale-105 whitespace-nowrap shadow-lg">
+          Resume Lesson
+        </a>
+      </div>
+
+      <!-- Overall Course Progress Bar -->
+      <div class="space-y-2 pt-2 border-t border-gray-800">
+        <div class="flex justify-between text-[10px] font-sans text-gray-400">
+          <span>Overall Course Completion</span>
+          <span class="text-brand-frost font-bold">37% Completed</span>
+        </div>
+        <div class="w-full bg-black/60 rounded-full h-2.5 overflow-hidden border border-gray-800">
+          <div class="bg-brand-frost h-2.5 rounded-full" style="width: 37%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Library Tabs Section -->
+    <div class="space-y-6">
+      
+      <!-- Tab Controls -->
+      <div class="flex space-x-8 border-b border-gray-800 text-sm font-sans font-bold">
+        <button id="tabCoursesBtn" onclick="switchLibraryTab('courses')" class="pb-3 border-b-2 border-brand-frost text-brand-frost transition-colors">
+          My Enrolled Courses (2)
+        </button>
+        <button id="tabAssetsBtn" onclick="switchLibraryTab('assets')" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-brand-white transition-colors">
+          My Saved Assets & LUTs (3)
+        </button>
+      </div>
+
+      <!-- Tab Content 1: Enrolled Courses -->
+      <div id="tabCourses" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Enrolled Course 1 (Active) -->
+        <div class="bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
+          <div class="space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
+                Active Masterclass
+              </span>
+              <span class="text-xs text-gray-400 font-sans">3/8 Lessons</span>
+            </div>
+            <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
+              DaVinci Resolve Dark & Moody Grade
+            </h3>
+            <p class="text-xs text-gray-400 font-sans leading-relaxed">
+              Master non-destructive node structures, exposure balancing in low light, shadow density management, and Delta Keyer windows.
+            </p>
+          </div>
+
+          <div class="space-y-4 mt-6">
+            <!-- Progress Bar -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-[10px] text-gray-400 font-sans">
+                <span>Progress</span>
+                <span class="text-brand-frost font-bold">37%</span>
+              </div>
+              <div class="w-full bg-black/60 rounded-full h-2 overflow-hidden">
+                <div class="bg-brand-frost h-2 rounded-full" style="width: 37%"></div>
+              </div>
+            </div>
+
+            <div class="pt-4 flex items-center justify-between border-t border-gray-800">
+              <span class="text-xs text-brand-frost font-bold font-sans">2h 45m Total</span>
+              <a href="course.html" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all">
+                Continue Watching
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enrolled Course 2 (Completed / Saved) -->
+        <div class="bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
+          <div class="space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest bg-black/40 border border-gray-800 px-3 py-1 rounded-full">
+                Completed
+              </span>
+              <span class="text-xs text-gray-400 font-sans">6/6 Modules</span>
+            </div>
+            <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
+              The Business of Creativity
+            </h3>
+            <p class="text-xs text-gray-400 font-sans leading-relaxed">
+              Structuring production proposals, client pitching, intellectual property buyouts, buyout rates, and financial workflows.
+            </p>
+          </div>
+
+          <div class="space-y-4 mt-6">
+            <!-- Progress Bar -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-[10px] text-gray-400 font-sans">
+                <span>Progress</span>
+                <span class="text-gray-400 font-bold">100%</span>
+              </div>
+              <div class="w-full bg-black/60 rounded-full h-2 overflow-hidden">
+                <div class="bg-brand-frost h-2 rounded-full" style="width: 100%"></div>
+              </div>
+            </div>
+
+            <div class="pt-4 flex items-center justify-between border-t border-gray-800">
+              <span class="text-xs text-gray-400 font-sans">Completed</span>
+              <a href="course.html" class="border border-gray-700 text-brand-white font-bold px-5 py-2.5 rounded-xl text-xs hover:border-brand-frost hover:text-brand-frost transition-all">
+                Revisit Course
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tab Content 2: Saved Assets & Downloads (Hidden by default) -->
+      <div id="tabAssets" class="space-y-4 hidden font-sans">
+        
+        <!-- Download Item 1 -->
+        <div class="p-5 bg-brand-gray border border-gray-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-gray-700 transition-all">
+          <div class="space-y-1">
+            <span class="font-bold text-sm block text-brand-white">Forest_Night_Moody_LUT.cube</span>
+            <span class="text-xs text-gray-400">Included in: DaVinci Resolve Dark & Moody Masterclass • 2.4 MB</span>
+          </div>
+          <button class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all self-start sm:self-auto">
+            Download File
+          </button>
+        </div>
+
+        <!-- Download Item 2 -->
+        <div class="p-5 bg-brand-gray border border-gray-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-gray-700 transition-all">
+          <div class="space-y-1">
+            <span class="font-bold text-sm block text-brand-white">DaVinci_Node_Tree_Template.drp</span>
+            <span class="text-xs text-gray-400">Included in: DaVinci Resolve Dark & Moody Masterclass • 1.1 MB</span>
+          </div>
+          <button class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all self-start sm:self-auto">
+            Download File
+          </button>
+        </div>
+
+        <!-- Download Item 3 -->
+        <div class="p-5 bg-brand-gray border border-gray-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-gray-700 transition-all">
+          <div class="space-y-1">
+            <span class="font-bold text-sm block text-brand-white">Creative_Proposal_and_Pitch_Suite.pdf</span>
+            <span class="text-xs text-gray-400">Included in: The Business of Creativity • 5.8 MB</span>
+          </div>
+          <button class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all self-start sm:self-auto">
+            Download File
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="border-t border-gray-800 py-10 px-6 md:px-10 bg-black text-xs text-gray-400 font-sans mt-auto">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="text-xl font-heading text-brand-white tracking-widest">CALLED TO CREATE</div>
+      <p>© 2026 Called to Create Ltd. All rights reserved.</p>
+      <div class="flex space-x-6 text-gray-400">
+        <a href="#" class="hover:text-brand-white">Terms</a>
+        <a href="#" class="hover:text-brand-white">Privacy</a>
+        <a href="#" class="hover:text-brand-white">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Tab Switch Script -->
+  <script>
+    function switchLibraryTab(tab) {
+      const coursesTab = document.getElementById('tabCourses');
+      const assetsTab = document.getElementById('tabAssets');
+      const coursesBtn = document.getElementById('tabCoursesBtn');
+      const assetsBtn = document.getElementById('tabAssetsBtn');
+
+      if (tab === 'courses') {
+        coursesTab.classList.remove('hidden');
+        assetsTab.classList.add('hidden');
+        coursesBtn.className = "pb-3 border-b-2 border-brand-frost text-brand-frost transition-colors";
+        assetsBtn.className = "pb-3 border-b-2 border-transparent text-gray-400 hover:text-brand-white transition-colors";
+      } else if (tab === 'assets') {
+        coursesTab.classList.add('hidden');
+        assetsTab.classList.remove('hidden');
+        coursesBtn.className = "pb-3 border-b-2 border-transparent text-gray-400 hover:text-brand-white transition-colors";
+        assetsBtn.className = "pb-3 border-b-2 border-brand-frost text-brand-frost transition-colors";
+      }
+    }
+  </script>
+
+</body>
+</html>

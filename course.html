@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Player | Called to Create</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Bebas Neue (Heading) & Decalotype (Sans/Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Decalotype:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              forest: '#132519', // Primary Forest Night
+              frost: '#98A869',  // Primary Frost Green
+              gray: '#212121',   // Secondary Dark Gray
+              white: '#FFFFFF',  // Secondary White
+            }
+          },
+          fontFamily: {
+            heading: ['"Bebas Neue"', 'sans-serif'],
+            sans: ['Decalotype', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-brand-forest text-brand-white font-sans antialiased selection:bg-brand-frost selection:text-brand-forest min-h-screen flex flex-col relative bg-[url('Background.png')] bg-repeat bg-center">
+
+  <!-- Subtle Dark Overlay -->
+  <div class="fixed inset-0 bg-brand-forest/95 pointer-events-none -z-10"></div>
+
+  <!-- Promo Top Banner -->
+  <div class="bg-brand-frost text-brand-forest text-center py-2 px-4 text-xs sm:text-sm font-semibold tracking-wide">
+    New members: Get 7 days of Premium platform access for free!
+  </div>
+
+  <!-- Header / Navigation (Matches Homepage Layout & Logo Size) -->
+  <header class="flex flex-col md:flex-row justify-between items-center px-6 md:px-10 py-4 border-b border-brand-gray/60 gap-4 sticky top-0 bg-brand-forest/95 backdrop-blur-md z-40">
+    <div class="flex items-center space-x-6">
+      <a href="index.html" class="inline-block transition-transform hover:scale-105">
+        <img 
+          src="C2C Logo (White).png" 
+          alt="Called to Create Logo" 
+          class="h-12 md:h-16 w-auto object-contain transition-all"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+        />
+        <div class="text-3xl font-heading tracking-widest text-brand-white hover:text-brand-frost transition-colors hidden">
+          CALLED TO CREATE
+        </div>
+      </a>
+      <span class="text-gray-600 hidden lg:inline">|</span>
+      <span class="text-xs text-gray-300 font-sans hidden lg:inline truncate max-w-xs">
+        DaVinci Resolve Dark Moody Masterclass
+      </span>
+    </div>
+
+    <nav class="flex items-center space-x-6 text-sm font-medium">
+      <a href="index.html" class="text-gray-300 hover:text-brand-white transition-colors flex items-center gap-1 text-xs">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Back to Catalog
+      </a>
+        <a href="library.html" class="bg-brand-frost text-brand-forest px-6 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs">
+        My Library
+        </a>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Player Layout Container -->
+  <!-- Main Player Layout Container -->
+  <main class="max-w-7xl mx-auto w-full px-6 md:px-10 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow">
+    
+    <!-- Top Row - Left Column: Video Player Frame (2 Columns) -->
+    <div class="lg:col-span-2">
+      <div class="bg-black aspect-video rounded-3xl border border-gray-800 relative overflow-hidden shadow-2xl flex flex-col justify-between group">
+        <!-- Mock Video Display -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex items-center justify-center">
+          <div class="text-center space-y-3 p-6 z-10">
+            <button id="playBtn" class="w-16 h-16 bg-brand-frost text-brand-forest rounded-full flex items-center justify-center mx-auto shadow-lg hover:scale-110 transition-transform">
+              <svg class="w-8 h-8 fill-current ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <span class="text-xs text-brand-frost font-sans uppercase tracking-widest block">
+              Lesson 03 • Module 1
+            </span>
+            <h1 class="text-2xl md:text-3xl font-heading tracking-wide text-brand-white">
+              DaVinci Resolve Dark Moody Grade Setup
+            </h1>
+          </div>
+        </div>
+
+        <!-- Video Control Bar Overlay (Mock) -->
+        <div class="relative z-20 p-4 bg-gradient-to-t from-black/90 to-transparent mt-auto flex items-center justify-between text-xs text-gray-300 font-sans">
+          <div class="flex items-center space-x-3">
+            <span class="text-brand-frost font-bold">12:45</span>
+            <span>/</span>
+            <span>20:00</span>
+          </div>
+          <div class="flex items-center space-x-4">
+            <button class="hover:text-brand-frost transition-colors">1.0x Speed</button>
+            <button class="hover:text-brand-frost transition-colors">1080p</button>
+            <button class="hover:text-brand-frost transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-2V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Row - Right Column: Interactive Course Curriculum Sidebar (1 Column) -->
+    <div class="bg-brand-gray border border-gray-800 p-6 rounded-3xl space-y-4 h-full flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
+          <div>
+            <h2 class="text-xl font-heading tracking-wide text-brand-white">Course Curriculum</h2>
+            <p class="text-[10px] text-gray-400 font-sans">8 Lessons • 2h 45m Total Duration</p>
+          </div>
+          <span class="text-xs text-brand-frost font-bold bg-brand-frost/10 px-2.5 py-1 rounded-full border border-brand-frost/20 font-sans">
+            37% Complete
+          </span>
+        </div>
+
+        <!-- Lesson List -->
+        <div class="space-y-2 font-sans">
+          <!-- Lesson 1 (Completed) -->
+          <button class="w-full text-left p-3 rounded-2xl border border-gray-800 bg-black/30 text-xs flex justify-between items-center text-gray-400 hover:border-gray-700 transition-all">
+            <div class="flex items-center space-x-3">
+              <span class="text-brand-frost">✓</span>
+              <div>
+                <span class="font-bold block text-gray-300">01. Color Managed Workflow Setup</span>
+                <span class="text-[10px] text-gray-500">10:00 mins</span>
+              </div>
+            </div>
+          </button>
+
+          <!-- Lesson 2 (Completed) -->
+          <button class="w-full text-left p-3 rounded-2xl border border-gray-800 bg-black/30 text-xs flex justify-between items-center text-gray-400 hover:border-gray-700 transition-all">
+            <div class="flex items-center space-x-3">
+              <span class="text-brand-frost">✓</span>
+              <div>
+                <span class="font-bold block text-gray-300">02. Primary Exposure & Contrast</span>
+                <span class="text-[10px] text-gray-500">15:00 mins</span>
+              </div>
+            </div>
+          </button>
+
+          <!-- Lesson 3 (Active) -->
+          <button class="w-full text-left p-3 rounded-2xl border border-brand-frost bg-brand-forest text-xs flex justify-between items-center text-brand-white shadow-lg">
+            <div class="flex items-center space-x-3">
+              <span class="w-2 h-2 rounded-full bg-brand-frost animate-pulse"></span>
+              <div>
+                <span class="font-bold block text-brand-frost">03. DaVinci Resolve Dark Moody Grade</span>
+                <span class="text-[10px] text-gray-300">20:00 mins • Now Playing</span>
+              </div>
+            </div>
+          </button>
+
+          <!-- Lesson 4 -->
+          <button class="w-full text-left p-3 rounded-2xl border border-gray-800 bg-black/30 text-xs flex justify-between items-center text-gray-400 hover:border-gray-700 transition-all">
+            <div class="flex items-center space-x-3">
+              <span class="text-gray-600">04</span>
+              <div>
+                <span class="font-bold block text-gray-300">Power Windows & Delta Keyer Isolation</span>
+                <span class="text-[10px] text-gray-500">18:00 mins</span>
+              </div>
+            </div>
+          </button>
+
+          <!-- Lesson 5 -->
+          <button class="w-full text-left p-3 rounded-2xl border border-gray-800 bg-black/30 text-xs flex justify-between items-center text-gray-400 hover:border-gray-700 transition-all">
+            <div class="flex items-center space-x-3">
+              <span class="text-gray-600">05</span>
+              <div>
+                <span class="font-bold block text-gray-300">Skin Tone Balance in Low Light</span>
+                <span class="text-[10px] text-gray-500">22:00 mins</span>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Row - Full Width Course Info Tabs (Spans All 3 Columns) -->
+    <div class="lg:col-span-3 bg-brand-gray border border-gray-800 rounded-3xl p-8 space-y-6">
+      
+      <!-- Tab Switches -->
+      <div class="flex space-x-8 border-b border-gray-800 text-sm font-sans font-bold">
+        <button id="tabOverviewBtn" onclick="switchTab('overview')" class="pb-3 border-b-2 border-brand-frost text-brand-frost transition-colors">
+          Overview & Notes
+        </button>
+        <button id="tabAssetsBtn" onclick="switchTab('assets')" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-brand-white transition-colors">
+          Downloads & LUTs (2)
+        </button>
+        <button id="tabDiscussionBtn" onclick="switchTab('discussion')" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-brand-white transition-colors">
+          Discussion
+        </button>
+      </div>
+
+      <!-- Tab 1: Overview Content -->
+      <div id="tabOverview" class="space-y-4 text-xs md:text-sm text-gray-300 leading-relaxed font-sans">
+        <h3 class="text-xl font-heading tracking-wide text-brand-white">About This Lesson</h3>
+        <p>
+          In this module, we break down node trees in DaVinci Resolve focused specifically on high-contrast, moody documentary visual aesthetics. We cover initial primary corrections, shadow density management, exposure balancing, and Delta Keyer power windows for target isolation.
+        </p>
+        <div class="p-4 bg-brand-forest/60 border border-brand-frost/30 rounded-2xl space-y-2">
+          <span class="text-brand-frost font-bold uppercase text-[10px] tracking-wider block">Key Concepts Covered:</span>
+          <ul class="list-disc list-inside space-y-1 text-xs text-gray-300">
+            <li>Setting up node trees for non-destructive color workflows</li>
+            <li>Preserving shadow detail while crushing background blacks</li>
+            <li>Utilizing Power Windows for subtle subject emphasis</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tab 2: Downloads & LUTs Content -->
+      <div id="tabAssets" class="space-y-3 font-sans hidden">
+        <h3 class="text-xl font-heading tracking-wide text-brand-white mb-2">Project Downloads</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 bg-black/40 border border-gray-700 rounded-2xl flex items-center justify-between">
+            <div>
+              <span class="font-bold text-xs block text-brand-white">Forest_Night_Moody_LUT.cube</span>
+              <span class="text-[10px] text-gray-400">3D LUT File • 2.4 MB</span>
+            </div>
+            <button class="bg-brand-frost text-brand-forest px-4 py-2 rounded-xl text-xs font-bold hover:bg-opacity-90 transition-all">
+              Download
+            </button>
+          </div>
+
+          <div class="p-4 bg-black/40 border border-gray-700 rounded-2xl flex items-center justify-between">
+            <div>
+              <span class="font-bold text-xs block text-brand-white">DaVinci_Node_Tree_Template.drp</span>
+              <span class="text-[10px] text-gray-400">DaVinci Resolve Project Preset • 1.1 MB</span>
+            </div>
+            <button class="bg-brand-frost text-brand-frost px-4 py-2 rounded-xl text-xs font-bold hover:bg-opacity-90 transition-all">
+              Download
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Discussion Content -->
+      <div id="tabDiscussion" class="space-y-4 font-sans hidden">
+        <h3 class="text-xl font-heading tracking-wide text-brand-white">Community Discussion</h3>
+        <div class="space-y-3">
+          <textarea 
+            placeholder="Ask a question or share your grading progress..." 
+            class="w-full bg-black/40 border border-gray-700 rounded-2xl p-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost"
+            rows="3"
+          ></textarea>
+          <button class="bg-brand-frost text-brand-forest font-bold px-4 py-2 rounded-xl text-xs hover:bg-opacity-90 transition-all">
+            Post Comment
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="border-t border-gray-800 py-10 px-6 md:px-10 bg-black text-xs text-gray-400 font-sans mt-auto">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="text-xl font-heading text-brand-white tracking-widest">CALLED TO CREATE</div>
+      <p>© 2026 Called to Create Ltd. All rights reserved.</p>
+      <div class="flex space-x-6 text-gray-400">
+        <a href="#" class="hover:text-brand-white">Terms</a>
+        <a href="#" class="hover:text-brand-white">Privacy</a>
+        <a href="#" class="hover:text-brand-white">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Tab Switching Logic Script -->
+  <script>
+    function switchTab(tabName) {
+      document.getElementById('tabOverview').classList.add('hidden');
+      document.getElementById('tabAssets').classList.add('hidden');
+      document.getElementById('tabDiscussion').classList.add('hidden');
+
+      document.getElementById('tabOverviewBtn').className = "pb-3 border-b-2 border-transparent text-gray-400 hover:text-brand-white transition-colors";
+      document.getElementById('tabAssetsBtn').className = "pb-3 border-b-2 border-transparent text-gray-400 hover:text-brand-white transition-colors";
+      document.getElementById('tabDiscussionBtn').className = "pb-3 border-b-2 border-transparent text-gray-400 hover:text-brand-white transition-colors";
+
+      if (tabName === 'overview') {
+        document.getElementById('tabOverview').classList.remove('hidden');
+        document.getElementById('tabOverviewBtn').className = "pb-3 border-b-2 border-brand-frost text-brand-frost transition-colors";
+      } else if (tabName === 'assets') {
+        document.getElementById('tabAssets').classList.remove('hidden');
+        document.getElementById('tabAssetsBtn').className = "pb-3 border-b-2 border-brand-frost text-brand-frost transition-colors";
+      } else if (tabName === 'discussion') {
+        document.getElementById('tabDiscussion').classList.remove('hidden');
+        document.getElementById('tabDiscussionBtn').className = "pb-3 border-b-2 border-brand-frost text-brand-frost transition-colors";
+      }
+    }
+  </script>
+
+</body>
+</html>

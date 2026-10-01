@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How It Works | Called to Create</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Bebas Neue (Heading) & Decalotype (Sans/Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Decalotype:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              forest: '#132519', // Primary Forest Night
+              frost: '#98A869',  // Primary Frost Green
+              gray: '#212121',   // Secondary Dark Gray
+              white: '#FFFFFF',  // Secondary White
+            }
+          },
+          fontFamily: {
+            heading: ['"Bebas Neue"', 'sans-serif'],
+            sans: ['Decalotype', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-brand-forest text-brand-white font-sans antialiased selection:bg-brand-frost selection:text-brand-forest min-h-screen flex flex-col relative bg-[url('Background.png')] bg-repeat bg-center">
+
+  <!-- Dark Overlay -->
+  <div class="fixed inset-0 bg-brand-forest/95 pointer-events-none -z-10"></div>
+
+  <!-- Header / Navigation -->
+  <header class="flex flex-col md:flex-row justify-between items-center px-6 md:px-10 py-4 border-b border-brand-gray/60 gap-4 sticky top-0 bg-brand-forest/95 backdrop-blur-md z-40">
+    <div class="flex items-center space-x-6">
+      <a href="index.html" class="inline-block transition-transform hover:scale-105">
+        <img 
+          src="C2C Logo (White).png" 
+          alt="Called to Create Logo" 
+          class="h-12 md:h-16 w-auto object-contain transition-all"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+        />
+        <div class="text-3xl font-heading tracking-widest text-brand-white hover:text-brand-frost transition-colors hidden">
+          CALLED TO CREATE
+        </div>
+      </a>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="flex items-center space-x-6 text-sm font-medium">
+      <a href="index.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs font-sans">
+        Home
+      </a>
+      <a href="explore.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs font-sans">
+        Explore
+      </a>
+      <a href="how-it-works.html" class="text-brand-frost font-bold border-b-2 border-brand-frost pb-0.5 text-xs font-sans">
+        How It Works
+      </a>
+      <a href="shop.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs font-sans">
+        Digital Assets
+      </a>
+      <a href="library.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs font-sans">
+        My Library
+      </a>
+    </nav>
+
+    <!-- Account Actions -->
+    <div class="flex items-center space-x-4">
+      <a href="login.html" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2">
+        Log In
+      </a>
+      <a href="signup.html" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs font-sans">
+        Sign Up
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto w-full px-6 md:px-10 py-16 flex-grow space-y-20">
+    
+    <!-- Hero Section -->
+    <section class="text-center max-w-3xl mx-auto space-y-6">
+      <span class="text-xs text-brand-frost font-bold uppercase tracking-widest block font-sans">
+        Simple, Fair & Direct
+      </span>
+      <h1 class="text-5xl md:text-6xl font-heading tracking-wide text-brand-white leading-tight">
+        No Subscriptions. Just Pure Ownership.
+      </h1>
+      <p class="text-sm md:text-base text-gray-300 font-sans leading-relaxed">
+        We built <strong class="text-brand-white">Called to Create</strong> differently. Instead of locking creative education behind monthly recurring subscription fees, we use a single **Pay-Per-Class** model that gives you complete, lifetime access to every course and downloadable asset you unlock.
+      </p>
+    </section>
+
+    <!-- 3-Step Process Grid -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <!-- Step 1 -->
+      <div class="bg-brand-gray border border-gray-800 rounded-3xl p-8 relative flex flex-col justify-between hover:border-gray-700 transition-all">
+        <div class="space-y-4">
+          <span class="text-4xl font-heading text-brand-frost block">01</span>
+          <h3 class="text-2xl font-heading tracking-wide text-brand-white">Choose What You Need</h3>
+          <p class="text-xs text-gray-400 font-sans leading-relaxed">
+            Browse our catalog of specialized masterclasses—ranging from cinematography, color grading, and sound design to visual storytelling and creative business strategy. Pay only for the specific skill or course you need today.
+          </p>
+        </div>
+        <div class="pt-6 border-t border-gray-800/80 mt-6 text-[10px] text-brand-frost uppercase font-bold tracking-widest">
+          Zero Monthly Commitments
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="bg-brand-gray border border-gray-800 rounded-3xl p-8 relative flex flex-col justify-between hover:border-gray-700 transition-all">
+        <div class="space-y-4">
+          <span class="text-4xl font-heading text-brand-frost block">02</span>
+          <h3 class="text-2xl font-heading tracking-wide text-brand-white">One-Time Payment</h3>
+          <p class="text-xs text-gray-400 font-sans leading-relaxed">
+            Unlock complete access with a single payment. No hidden recurring charges, no surprise monthly deductions, and no continuous membership fees to keep your access active.
+          </p>
+        </div>
+        <div class="pt-6 border-t border-gray-800/80 mt-6 text-[10px] text-brand-frost uppercase font-bold tracking-widest">
+          Transparent Single Price
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="bg-brand-gray border border-gray-800 rounded-3xl p-8 relative flex flex-col justify-between hover:border-gray-700 transition-all">
+        <div class="space-y-4">
+          <span class="text-4xl font-heading text-brand-frost block">03</span>
+          <h3 class="text-2xl font-heading tracking-wide text-brand-white">Lifetime Access & Assets</h3>
+          <p class="text-xs text-gray-400 font-sans leading-relaxed">
+            Once unlocked, the masterclass, accompanying project files, PowerGrades, templates, and downloadable resources live permanently in your **My Library** space to revisit whenever you want.
+          </p>
+        </div>
+        <div class="pt-6 border-t border-gray-800/80 mt-6 text-[10px] text-brand-frost uppercase font-bold tracking-widest">
+          Yours To Keep Forever
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Why Pay-Per-Class Comparison Banner -->
+    <section class="bg-brand-gray/60 border border-gray-800 rounded-3xl p-8 md:p-12 space-y-8">
+      <div class="max-w-2xl space-y-3">
+        <span class="text-xs text-brand-frost font-bold uppercase tracking-widest block font-sans">
+          The Platform Philosophy
+        </span>
+        <h2 class="text-3xl md:text-4xl font-heading tracking-wide text-brand-white">
+          Why We Rejected Subscription Fatigue
+        </h2>
+        <p class="text-xs md:text-sm text-gray-300 font-sans leading-relaxed">
+          Most platforms force you into ongoing monthly fees—if you cancel, you lose access to every lesson and project file you studied. Here is how Called to Create compares:
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Traditional Subscriptions -->
+        <div class="bg-black/40 border border-red-900/30 rounded-2xl p-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+            <h4 class="text-lg font-heading text-brand-white tracking-wide">Traditional Subscriptions</h4>
+          </div>
+          <ul class="space-y-3 text-xs text-gray-400 font-sans">
+            <li class="flex items-start gap-2">
+              <span class="text-red-400 font-bold">✕</span> You lose access the moment you cancel your monthly plan.
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-red-400 font-bold">✕</span> You pay every month even when you are too busy on set or editing to watch lessons.
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-red-400 font-bold">✕</span> Downloadable project files and templates are often restricted.
+            </li>
+          </ul>
+        </div>
+
+        <!-- Called to Create Model -->
+        <div class="bg-brand-forest border border-brand-frost/40 rounded-2xl p-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-brand-frost"></div>
+            <h4 class="text-lg font-heading text-brand-white tracking-wide">Called to Create Model</h4>
+          </div>
+          <ul class="space-y-3 text-xs text-gray-300 font-sans">
+            <li class="flex items-start gap-2">
+              <span class="text-brand-frost font-bold">✓</span> Pay once per class, keep lifetime access to videos, assets, and updates.
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-brand-frost font-bold">✓</span> Learn at your own pace without pressure or recurring bills.
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-brand-frost font-bold">✓</span> Download production templates, LUTs, and audio packs directly to your machine.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="text-center space-y-6 pt-6">
+      <h2 class="text-4xl font-heading text-brand-white tracking-wide">
+        Ready To Expand Your Creative Practice?
+      </h2>
+      <p class="text-xs md:text-sm text-gray-300 font-sans max-w-lg mx-auto">
+        Explore our curated classes or browse production-ready digital assets tailored for independent filmmakers and creative directors.
+      </p>
+      <div class="flex flex-col sm:flex-row justify-center items-center gap-4 pt-2">
+        <a href="explore.html" class="bg-brand-frost text-brand-forest px-8 py-3.5 rounded-full font-bold hover:bg-opacity-90 transition-all text-xs font-sans">
+          Explore All Classes
+        </a>
+        <a href="shop.html" class="bg-brand-gray border border-gray-800 text-brand-white px-8 py-3.5 rounded-full font-bold hover:border-brand-frost/50 transition-all text-xs font-sans">
+          Browse Digital Assets
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="border-t border-gray-800 py-10 px-6 md:px-10 bg-black text-xs text-gray-400 font-sans mt-auto">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="text-xl font-heading text-brand-white tracking-widest">CALLED TO CREATE</div>
+      <p>© 2026 Called to Create Ltd. All rights reserved.</p>
+      <div class="flex space-x-6 text-gray-400">
+        <a href="#" class="hover:text-brand-white">Terms</a>
+        <a href="#" class="hover:text-brand-white">Privacy</a>
+        <a href="#" class="hover:text-brand-white">Support</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
