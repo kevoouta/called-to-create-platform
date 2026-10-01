@@ -49,9 +49,14 @@
       <a href="how-it-works.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs">How It Works</a>
     </nav>
 
-    <div class="flex items-center space-x-4">
-      <a href="index.html" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2">Log In</a>
-      <a href="index.html" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs font-sans">Sign Up</a>
+    <!-- Account Actions (Dynamic Auth Container) -->
+    <div id="navAuthButtons" class="flex items-center space-x-4">
+      <button onclick="openAuthDrawer('login')" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2 cursor-pointer">
+        Log In
+      </button>
+      <button onclick="openAuthDrawer('signup')" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs font-sans cursor-pointer">
+        Sign Up
+      </button>
     </div>
   </header>
 
@@ -74,16 +79,16 @@
         
         <div class="space-y-4 font-sans text-xs">
           <div class="bg-brand-gray border border-gray-800 rounded-2xl p-6 space-y-2">
-            <h3 class="font-bold text-sm text-brand-white">How do I access my purchased classes and project files?</h3>
+            <h3 class="font-bold text-sm text-brand-white">How do I access my purchased courses and project files?</h3>
             <p class="text-gray-400 leading-relaxed">
-              Once a payment is confirmed via Paystack (M-Pesa or Card), your purchased masterclass and associated downloadable files (.drx PowerGrades, templates) immediately unlock in your <strong>My Library</strong> dashboard.
+              Once a payment is confirmed via Paystack (M-Pesa or Card), your purchased course and associated downloadable files (.drx PowerGrades, templates) immediately unlock in your <strong>My Library</strong> dashboard.
             </p>
           </div>
 
           <div class="bg-brand-gray border border-gray-800 rounded-2xl p-6 space-y-2">
             <h3 class="font-bold text-sm text-brand-white">Do I need to pay every month?</h3>
             <p class="text-gray-400 leading-relaxed">
-              No. We do not use recurring subscriptions. You pay a single one-time price per class or asset pack and receive lifetime access.
+              No. We do not use recurring subscriptions. You pay a single one-time price per course or asset pack and receive lifetime access.
             </p>
           </div>
 
@@ -110,20 +115,20 @@
           <p class="text-xs text-gray-400 font-sans">Our technical and support team usually responds within 24 hours.</p>
         </div>
 
-        <form onsubmit="event.preventDefault(); alert('Inquiry sent! We will reach out shortly.');" class="space-y-4 font-sans text-xs">
+        <form id="supportForm" onsubmit="handleSupportInquiry(event)" class="space-y-4 font-sans text-xs">
           <div>
             <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Full Name</label>
-            <input type="text" required placeholder="Your Name" class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-brand-white focus:outline-none focus:border-brand-frost" />
+            <input type="text" id="inquiryName" required placeholder="Your Name" class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-brand-white focus:outline-none focus:border-brand-frost" />
           </div>
 
           <div>
             <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Email Address</label>
-            <input type="email" required placeholder="creator@calledtocreate.com" class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-brand-white focus:outline-none focus:border-brand-frost" />
+            <input type="email" id="inquiryEmail" required placeholder="creator@calledtocreate.com" class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-brand-white focus:outline-none focus:border-brand-frost" />
           </div>
 
           <div>
             <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Topic</label>
-            <select class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-brand-white focus:outline-none focus:border-brand-frost">
+            <select id="inquiryTopic" class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-brand-white focus:outline-none focus:border-brand-frost">
               <option>Access & Payment Query</option>
               <option>Digital Asset Download Issue</option>
               <option>Course Technical Support</option>
@@ -133,10 +138,12 @@
 
           <div>
             <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Message</label>
-            <textarea rows="4" required placeholder="Describe your issue or question..." class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-brand-white focus:outline-none focus:border-brand-frost"></textarea>
+            <textarea id="inquiryMessage" rows="4" required placeholder="Describe your issue or question..." class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-brand-white focus:outline-none focus:border-brand-frost"></textarea>
           </div>
 
-          <button type="submit" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
+          <p id="inquiryStatus" class="text-xs hidden font-sans"></p>
+
+          <button type="submit" id="inquirySubmitBtn" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
             Send Message
           </button>
         </form>
@@ -145,56 +152,408 @@
     </div>
   </main>
 
+  <!-- Slide-Out Auth Side Drawer Overlay & Drawer -->
+  <div id="authDrawerOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden transition-opacity" onclick="closeAuthDrawer()"></div>
+
+  <div id="authDrawer" class="fixed top-0 right-0 w-full max-w-md h-full bg-brand-forest border-l border-gray-800 z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between p-8">
+    <div>
+      <div class="flex justify-between items-center border-b border-gray-800 pb-4 mb-8">
+        <div class="flex space-x-6">
+          <button id="tabLogin" onclick="switchAuthTab('login')" class="text-xl font-heading tracking-wide text-brand-frost border-b-2 border-brand-frost pb-1 cursor-pointer">Log In</button>
+          <button id="tabSignup" onclick="switchAuthTab('signup')" class="text-xl font-heading tracking-wide text-gray-400 hover:text-brand-white pb-1 cursor-pointer">Create Account</button>
+        </div>
+        <button onclick="closeAuthDrawer()" class="text-gray-400 hover:text-brand-white text-lg font-bold cursor-pointer">✕</button>
+      </div>
+
+      <!-- Log In Form -->
+      <form id="loginForm" class="space-y-5" onsubmit="handleLogin(event)">
+        <div>
+          <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Email Address</label>
+          <input id="loginEmail" type="email" required placeholder="creator@calledtocreate.com" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
+        </div>
+        <div>
+          <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Password</label>
+          <input id="loginPassword" type="password" required placeholder="••••••••" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
+        </div>
+        <p id="loginStatus" class="text-xs hidden font-sans"></p>
+        <button id="loginSubmitBtn" type="submit" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90 transition-all mt-4 font-sans cursor-pointer">
+          Sign In to Library
+        </button>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form id="signupForm" class="space-y-5 hidden" onsubmit="handleSignup(event)">
+        <div>
+          <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Full Name</label>
+          <input id="signupName" type="text" required placeholder="Your Name" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
+        </div>
+        <div>
+          <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Email Address</label>
+          <input id="signupEmail" type="email" required placeholder="creator@calledtocreate.com" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
+        </div>
+        <div>
+          <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Password</label>
+          <input id="signupPassword" type="password" required placeholder="••••••••" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
+        </div>
+        <p id="signupStatus" class="text-xs hidden font-sans"></p>
+        <button id="signupSubmitBtn" type="submit" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90 transition-all mt-4 font-sans cursor-pointer">
+          Create Account & Access Courses
+        </button>
+      </form>
+    </div>
+
+    <div class="border-t border-gray-800 pt-6 text-center text-xs text-gray-400 font-sans">
+      <p>Pay-per-course model • Lifetime access included</p>
+    </div>
+  </div>
+
   <!-- Global Footer -->
   <footer class="border-t border-gray-800 bg-black text-xs text-gray-400 font-sans mt-auto py-16 px-6 md:px-10">
     <div class="max-w-7xl mx-auto space-y-12">
+      
       <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+        
+        <!-- Column 1: Full Logo & Brief -->
         <div class="space-y-4 md:col-span-1">
           <a href="index.html" class="inline-block">
             <img src="C2C Logo (White).png" alt="Called to Create Logo" class="h-14 w-auto object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
             <div class="text-2xl font-heading tracking-widest text-brand-white hidden">CALLED TO CREATE</div>
           </a>
-          <p class="text-gray-400 text-xs leading-relaxed">An independent platform dedicated to equipping filmmakers, photographers, and visual artists with specialized education and practical digital tools.</p>
+          <p class="text-gray-400 text-xs leading-relaxed">
+            An independent platform dedicated to equipping filmmakers, photographers, and visual artists with specialized education and practical digital tools.
+          </p>
         </div>
 
+        <!-- Column 2: Quick Links Menu -->
         <div class="space-y-3">
           <h4 class="text-brand-white font-heading text-lg tracking-wider">Navigation</h4>
           <ul class="space-y-2">
             <li><a href="index.html" class="hover:text-brand-white transition-colors">Home</a></li>
-            <li><a href="explore.html" class="hover:text-brand-white transition-colors">Explore Classes</a></li>
+            <li><a href="explore.html" class="hover:text-brand-white transition-colors">Explore Courses</a></li>
             <li><a href="how-it-works.html" class="hover:text-brand-white transition-colors">How It Works</a></li>
             <li><a href="shop.html" class="hover:text-brand-white transition-colors">Digital Assets Shop</a></li>
           </ul>
         </div>
 
+        <!-- Column 3: Direct Social Links -->
         <div class="space-y-3">
           <h4 class="text-brand-white font-heading text-lg tracking-wider">Connect</h4>
           <ul class="space-y-2">
-            <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="hover:text-brand-white transition-colors">Instagram</a></li>
-            <li><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="hover:text-brand-white transition-colors">LinkedIn</a></li>
+            <li>
+              <a 
+                href="https://www.instagram.com/calledtocreate_c2c/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                class="flex items-center gap-2 text-gray-400 hover:text-brand-white transition-colors"
+              >
+                <svg class="w-4 h-4 text-brand-frost" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                <span>Instagram</span>
+              </a>
+            </li>
+            <li>
+              <a 
+                href="https://www.linkedin.com/company/called-to-create-c2c/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                class="flex items-center gap-2 text-gray-400 hover:text-brand-white transition-colors"
+              >
+                <svg class="w-4 h-4 text-brand-frost" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                <span>LinkedIn</span>
+              </a>
+            </li>
           </ul>
         </div>
 
+        <!-- Column 4: Inline Newsletter Sign-Up Box -->
         <div class="space-y-3">
           <h4 class="text-brand-white font-heading text-lg tracking-wider">Stay Updated</h4>
-          <p class="text-gray-400 text-xs">Receive platform updates and creative advice.</p>
-          <form onsubmit="event.preventDefault(); alert('Subscribed via footer!');" class="flex flex-col gap-2">
-            <input type="email" required placeholder="Your email address" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-3 py-2 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
-            <button type="submit" class="bg-brand-frost text-brand-forest font-bold py-2 rounded-xl text-xs hover:bg-opacity-90 transition-all font-sans cursor-pointer">Join Newsletter</button>
+          <p class="text-gray-400 text-xs">Receive platform updates, asset drops, and creative advice directly in your inbox.</p>
+          <form id="footerNewsletterForm" onsubmit="handleFooterSubscribe(event)" class="flex flex-col gap-2">
+            <input 
+              type="email" 
+              id="footerEmailInput"
+              required 
+              placeholder="Your email address" 
+              class="w-full bg-brand-gray border border-gray-800 rounded-xl px-3 py-2 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans"
+            />
+            <button 
+              type="submit" 
+              id="footerSubmitBtn"
+              class="bg-brand-frost text-brand-forest font-bold py-2 rounded-xl text-xs hover:bg-opacity-90 transition-all font-sans cursor-pointer"
+            >
+              Join Our Community
+            </button>
           </form>
         </div>
+
       </div>
 
+      <!-- Bottom Bar -->
       <div class="border-t border-gray-800/80 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-[11px]">
         <p>© 2026 Called to Create Ltd. All rights reserved.</p>
         <div class="flex space-x-6">
           <a href="terms.html" class="hover:text-brand-white">Terms of Service</a>
           <a href="privacy.html" class="hover:text-brand-white">Privacy Policy</a>
-          <a href="support.html" class="text-brand-white">Support</a>
+          <a href="support.html" class="hover:text-brand-white">Support</a>
         </div>
       </div>
     </div>
   </footer>
+
+  <!-- Supabase CDN SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    // Initialize Supabase Client
+    const SUPABASE_URL = 'https://ecbftpfbbfvcxreszsfo.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_AQZBPX4R8Q4IxQnKO2euYw_IWwlxlb9';
+
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+
+    // Auth State Listener
+    document.addEventListener("DOMContentLoaded", () => {
+      window.supabaseClient.auth.onAuthStateChange((event, session) => {
+        currentUser = session ? session.user : null;
+        updateNavForAuth(currentUser);
+      });
+    });
+
+    // Dynamic Navigation Header
+    function updateNavForAuth(user) {
+      const navContainer = document.getElementById('navAuthButtons');
+      if (!navContainer) return;
+
+      if (user) {
+        navContainer.innerHTML = `
+          <a href="library.html" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all text-xs font-sans">
+            My Library
+          </a>
+          <button onclick="handleSignOut()" class="text-gray-400 hover:text-brand-white text-xs font-sans border border-gray-800 hover:border-gray-600 px-3 py-1.5 rounded-xl transition-all cursor-pointer">
+            Sign Out
+          </button>
+        `;
+      } else {
+        navContainer.innerHTML = `
+          <button onclick="openAuthDrawer('login')" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2 cursor-pointer">
+            Log In
+          </button>
+          <button onclick="openAuthDrawer('signup')" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs font-sans cursor-pointer">
+            Sign Up
+          </button>
+        `;
+      }
+    }
+
+    async function handleSignOut() {
+      await window.supabaseClient.auth.signOut();
+      window.location.reload();
+    }
+
+    // Auth Side Drawer Controls
+    function openAuthDrawer(tab) {
+      const overlay = document.getElementById('authDrawerOverlay');
+      const drawer = document.getElementById('authDrawer');
+      
+      switchAuthTab(tab);
+      
+      overlay.classList.remove('hidden');
+      setTimeout(() => {
+        drawer.classList.remove('translate-x-full');
+      }, 10);
+    }
+
+    function closeAuthDrawer() {
+      const overlay = document.getElementById('authDrawerOverlay');
+      const drawer = document.getElementById('authDrawer');
+      
+      drawer.classList.add('translate-x-full');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+      }, 300);
+    }
+
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
+      const tabLogin = document.getElementById('tabLogin');
+      const tabSignup = document.getElementById('tabSignup');
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+        tabLogin.className = "text-xl font-heading tracking-wide text-brand-frost border-b-2 border-brand-frost pb-1 cursor-pointer";
+        tabSignup.className = "text-xl font-heading tracking-wide text-gray-400 hover:text-brand-white pb-1 cursor-pointer";
+      } else {
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+        tabSignup.className = "text-xl font-heading tracking-wide text-brand-frost border-b-2 border-brand-frost pb-1 cursor-pointer";
+        tabLogin.className = "text-xl font-heading tracking-wide text-gray-400 hover:text-brand-white pb-1 cursor-pointer";
+      }
+    }
+
+    // Supabase Auth Handlers
+    async function handleLogin(event) {
+      event.preventDefault();
+      
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const statusText = document.getElementById('loginStatus');
+      const submitBtn = document.getElementById('loginSubmitBtn');
+
+      statusText.classList.remove('hidden', 'text-red-400');
+      statusText.classList.add('text-brand-frost');
+      statusText.textContent = 'Authenticating...';
+      submitBtn.disabled = true;
+
+      const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        statusText.textContent = error.message;
+        statusText.classList.remove('text-brand-frost');
+        statusText.classList.add('text-red-400');
+        submitBtn.disabled = false;
+      } else {
+        statusText.textContent = 'Success! Redirecting...';
+        setTimeout(() => {
+          window.location.href = 'library.html';
+        }, 1000);
+      }
+    }
+
+    async function handleSignup(event) {
+      event.preventDefault();
+
+      const fullName = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const statusText = document.getElementById('signupStatus');
+      const submitBtn = document.getElementById('signupSubmitBtn');
+
+      statusText.classList.remove('hidden', 'text-red-400');
+      statusText.classList.add('text-brand-frost');
+      statusText.textContent = 'Creating account...';
+      submitBtn.disabled = true;
+
+      const { data, error } = await window.supabaseClient.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } }
+      });
+
+      if (error) {
+        statusText.textContent = error.message;
+        statusText.classList.remove('text-brand-frost');
+        statusText.classList.add('text-red-400');
+        submitBtn.disabled = false;
+      } else {
+        statusText.textContent = 'Account created! Please check your email to confirm.';
+      }
+    }
+
+    // Supabase Support Inquiry Form Handler
+    async function handleSupportInquiry(event) {
+      event.preventDefault();
+
+      const fullName = document.getElementById('inquiryName').value.trim();
+      const email = document.getElementById('inquiryEmail').value.trim();
+      const topic = document.getElementById('inquiryTopic').value;
+      const message = document.getElementById('inquiryMessage').value.trim();
+      
+      const statusText = document.getElementById('inquiryStatus');
+      const submitBtn = document.getElementById('inquirySubmitBtn');
+
+      if (!fullName || !email || !message) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending Message...';
+      statusText.classList.remove('hidden', 'text-red-400');
+      statusText.classList.add('text-brand-frost');
+      statusText.textContent = 'Submitting your inquiry...';
+
+      try {
+        const { error } = await window.supabaseClient
+          .from('inquiries')
+          .insert([{ 
+            full_name: fullName, 
+            email: email, 
+            topic: topic, 
+            message: message 
+          }]);
+
+        if (error) {
+          console.error('Inquiry submission error:', error);
+          statusText.textContent = 'Failed to send. Please try again.';
+          statusText.classList.remove('text-brand-frost');
+          statusText.classList.add('text-red-400');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Send Message';
+        } else {
+          statusText.textContent = 'Inquiry sent successfully! We will reach out shortly.';
+          submitBtn.textContent = 'Message Sent!';
+          submitBtn.classList.remove('bg-brand-frost', 'text-brand-forest', 'hover:bg-opacity-90');
+          submitBtn.classList.add('bg-emerald-600', 'text-white', 'cursor-default');
+          
+          document.getElementById('inquiryName').value = '';
+          document.getElementById('inquiryEmail').value = '';
+          document.getElementById('inquiryMessage').value = '';
+        }
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        statusText.textContent = 'An unexpected error occurred. Please try again.';
+        statusText.classList.remove('text-brand-frost');
+        statusText.classList.add('text-red-400');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Message';
+      }
+    }
+
+    // Dynamic Footer Newsletter Subscription (Connected to Supabase)
+    async function handleFooterSubscribe(event) {
+      event.preventDefault();
+      const btn = document.getElementById('footerSubmitBtn');
+      const input = document.getElementById('footerEmailInput');
+      const email = input.value.trim();
+
+      if (!email) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      try {
+        const { error } = await window.supabaseClient
+          .from('newsletter_subscribers')
+          .insert([{ email }]);
+
+        if (error) {
+          if (error.code === '23505') {
+            btn.textContent = 'Already Subscribed!';
+            btn.classList.remove('bg-brand-frost', 'text-brand-forest');
+            btn.classList.add('bg-emerald-600', 'text-white', 'cursor-default');
+            input.value = '';
+            input.placeholder = 'You are on the list!';
+            input.disabled = true;
+          } else {
+            console.error('Newsletter error:', error);
+            btn.textContent = 'Try Again';
+            btn.disabled = false;
+          }
+        } else {
+          btn.textContent = 'Subscribed!';
+          btn.classList.remove('bg-brand-frost', 'text-brand-forest', 'hover:bg-opacity-90');
+          btn.classList.add('bg-emerald-600', 'text-white', 'cursor-default');
+          input.value = '';
+          input.placeholder = 'Thank you for joining us!';
+          input.disabled = true;
+        }
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        btn.textContent = 'Try Again';
+        btn.disabled = false;
+      }
+    }
+  </script>
 
 </body>
 </html>

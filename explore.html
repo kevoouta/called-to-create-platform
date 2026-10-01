@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Explore Courses & Resources | Called to Create</title>
+  <title>Explore All Courses | Called to Create</title>
   <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Google Fonts: Bebas Neue (Heading) & Decalotype (Sans/Body) -->
@@ -37,26 +37,35 @@
   <!-- Subtle Dark Overlay -->
   <div class="fixed inset-0 bg-brand-forest/95 pointer-events-none -z-10"></div>
 
-  <!-- Promo Top Banner -->
-  <div class="bg-brand-frost text-brand-forest text-center py-2 px-4 text-xs sm:text-sm font-semibold tracking-wide">
-    New members: Get 7 days of Premium platform access for free!
-  </div>
-
   <!-- Header / Navigation -->
   <header class="flex flex-col md:flex-row justify-between items-center px-6 md:px-10 py-4 border-b border-brand-gray/60 gap-4 sticky top-0 bg-brand-forest/95 backdrop-blur-md z-40">
-    <div class="flex items-center space-x-6">
-      <a href="index.html" class="inline-block transition-transform hover:scale-105">
-        <img 
-          src="C2C Logo (White).png" 
-          alt="Called to Create Logo" 
-          class="h-12 md:h-16 w-auto object-contain transition-all"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-        />
-        <div class="text-3xl font-heading tracking-widest text-brand-white hover:text-brand-frost transition-colors hidden">
-          CALLED TO CREATE
-        </div>
-      </a>
-    </div>
+    <!-- Logo -->
+    <a href="index.html" class="inline-block transition-transform hover:scale-105">
+      <img 
+        src="C2C Logo (White).png" 
+        alt="Called to Create Logo" 
+        class="h-12 md:h-16 w-auto object-contain transition-all"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      />
+      <div class="text-3xl font-heading tracking-widest text-brand-white hover:text-brand-frost transition-colors hidden">
+        CALLED TO CREATE
+      </div>
+    </a>
+    
+    <!-- Search Form (Redirects to search.html) -->
+    <form action="search.html" method="GET" class="w-full md:w-1/3 relative">
+      <input 
+        type="text" 
+        name="q"
+        placeholder="Search courses, digital assets, topics..." 
+        class="w-full bg-brand-gray border border-gray-700 text-brand-white px-4 py-2 pl-10 pr-4 rounded-full text-sm focus:outline-none focus:border-brand-frost transition-all placeholder-gray-400 font-sans"
+      />
+      <button type="submit" class="absolute left-3.5 top-2.5 text-gray-400 hover:text-brand-frost transition-colors cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </button>
+    </form>
 
     <!-- Navigation Links -->
     <nav class="flex items-center space-x-6 text-sm font-medium">
@@ -66,271 +75,663 @@
       <a href="explore.html" class="text-brand-frost font-bold border-b-2 border-brand-frost pb-0.5 text-xs font-sans">
         Explore
       </a>
-      <a href="library.html" class="bg-brand-frost text-brand-forest px-6 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs">
-        My Library
+      <a href="shop.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs font-sans">
+        Digital Assets
+      </a>
+      <a href="how-it-works.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs font-sans">
+        How It Works
       </a>
     </nav>
+
+    <!-- Account Actions (Dynamic Auth Container) -->
+    <div id="navAuthButtons" class="flex items-center space-x-4">
+      <button onclick="openAuthDrawer('login')" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2 cursor-pointer">
+        Log In
+      </button>
+      <button onclick="openAuthDrawer('signup')" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs font-sans cursor-pointer">
+        Sign Up
+      </button>
+    </div>
   </header>
 
-  <!-- Main Explore Section -->
-  <main class="max-w-7xl mx-auto w-full px-6 md:px-10 py-10 flex-grow space-y-10">
+  <!-- Main Explore Page Content -->
+  <main class="max-w-7xl mx-auto w-full px-6 md:px-10 py-12 flex-grow space-y-10">
     
-    <!-- Hero / Header Title Area -->
-    <div class="space-y-4 max-w-2xl">
-      <span class="text-xs text-brand-frost font-bold uppercase tracking-widest block font-sans">
-        Catalog & Resource Hub
-      </span>
-      <h1 class="text-4xl md:text-5xl font-heading tracking-wide text-brand-white">
-        Explore Masterclasses & Assets
-      </h1>
-      <p class="text-xs md:text-sm text-gray-300 font-sans leading-relaxed">
-        Browse specialized modules on low-light color grading, documentary storytelling, film business, and production assets designed for independent creators.
-      </p>
+    <!-- Hero Header -->
+    <div class="border-b border-gray-800 pb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      <div class="space-y-3 max-w-2xl">
+        <span class="text-xs text-brand-frost font-bold uppercase tracking-widest block font-sans">
+          Curated Curriculum
+        </span>
+        <h1 class="text-4xl md:text-6xl font-heading tracking-wide text-brand-white">
+          Explore All Courses
+        </h1>
+        <p class="text-xs md:text-sm text-gray-300 font-sans leading-relaxed">
+          Step-by-step video courses taught by working filmmakers and visual directors. Unlock lifetime streaming access and accompanying project files with a single purchase.
+        </p>
+      </div>
+
+      <!-- Live Course Counter -->
+      <div class="bg-brand-gray border border-gray-800 px-5 py-3 rounded-2xl flex items-center gap-3">
+        <span id="courseCount" class="text-2xl font-heading text-brand-frost">6</span>
+        <span class="text-xs text-gray-300 font-sans leading-tight">Courses<br/>Available</span>
+      </div>
     </div>
 
-    <!-- Search Bar & Category Filters Container -->
-    <div class="space-y-6">
+    <!-- Category Filter Pills Bar -->
+    <div class="space-y-4">
+      <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block font-sans">Filter by Subject Area</span>
+      <div class="flex items-center space-x-3 overflow-x-auto text-xs font-medium no-scrollbar pb-2 font-sans">
+        <button onclick="filterCategory('all')" id="cat-all" class="cat-pill bg-brand-frost text-brand-forest px-5 py-2.5 rounded-full font-bold cursor-pointer transition-all">All Courses</button>
+        <button onclick="filterCategory('cinematography')" id="cat-cinematography" class="cat-pill bg-brand-gray text-gray-300 hover:text-brand-white px-5 py-2.5 rounded-full cursor-pointer transition-colors whitespace-nowrap border border-gray-800">Cinematography</button>
+        <button onclick="filterCategory('color-grading')" id="cat-color-grading" class="cat-pill bg-brand-gray text-gray-300 hover:text-brand-white px-5 py-2.5 rounded-full cursor-pointer transition-colors whitespace-nowrap border border-gray-800">Color Grading</button>
+        <button onclick="filterCategory('documentary')" id="cat-documentary" class="cat-pill bg-brand-gray text-gray-300 hover:text-brand-white px-5 py-2.5 rounded-full cursor-pointer transition-colors whitespace-nowrap border border-gray-800">Documentary Film</button>
+        <button onclick="filterCategory('sound')" id="cat-sound" class="cat-pill bg-brand-gray text-gray-300 hover:text-brand-white px-5 py-2.5 rounded-full cursor-pointer transition-colors whitespace-nowrap border border-gray-800">Sound Design</button>
+        <button onclick="filterCategory('business')" id="cat-business" class="cat-pill bg-brand-gray text-gray-300 hover:text-brand-white px-5 py-2.5 rounded-full cursor-pointer transition-colors whitespace-nowrap border border-gray-800">Business of Art</button>
+      </div>
+    </div>
+
+    <!-- Course Catalog Grid -->
+    <div id="courseGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       
-      <!-- Search input -->
-      <div class="relative max-w-xl">
-        <input 
-          type="text" 
-          id="searchInput" 
-          placeholder="Search lessons, LUTs, DaVinci presets, topics..." 
-          class="w-full bg-brand-gray/90 border border-gray-800 rounded-2xl py-3.5 pl-11 pr-4 text-xs md:text-sm text-brand-white placeholder-gray-500 focus:outline-none focus:border-brand-frost transition-all"
-        />
-        <svg class="w-5 h-5 text-gray-500 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-        </svg>
+      <!-- Course Card 1 -->
+      <div class="course-card cinematography bg-brand-gray border border-gray-800 rounded-3xl overflow-hidden flex flex-col justify-between hover:border-brand-frost/60 transition-all group">
+        <div>
+          <div class="aspect-video bg-black/50 relative flex items-center justify-center p-4 border-b border-gray-800/80">
+            <span class="bg-brand-frost/20 text-brand-frost text-[10px] font-bold px-3 py-1 rounded-full border border-brand-frost/30 uppercase tracking-widest absolute top-4 left-4 font-sans">
+              Cinematography
+            </span>
+            <div class="text-center">
+              <span class="text-5xl font-heading text-gray-600 group-hover:text-brand-frost transition-colors">01</span>
+            </div>
+          </div>
+          <div class="p-6 space-y-3">
+            <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
+              Cinematic Storytelling & Dark Aesthetics
+            </h3>
+            <p class="text-xs text-gray-400 leading-relaxed font-sans">
+              Learn practical high-contrast lighting setups, mood creation in low light, and documentary shot compositions.
+            </p>
+            <div class="pt-2 flex items-center justify-between text-[11px] text-gray-400 font-sans border-t border-gray-800/60">
+              <span>5 Modules • 1h 20m</span>
+              <span class="text-brand-frost font-semibold">Includes Lighting Diagrams</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 pt-0 mt-4 flex items-center justify-between border-t border-gray-800/80 pt-4">
+          <div>
+            <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
+            <span class="text-xl font-heading text-brand-frost">KES 2,500</span>
+          </div>
+          <button onclick="handleEnrollClick('cinematic-storytelling')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+            Enroll Now
+          </button>
+        </div>
       </div>
 
-      <!-- Filter Buttons -->
-      <div class="flex flex-wrap gap-3 font-sans text-xs">
-        <button onclick="filterCategory('all')" id="btn-all" class="filter-btn bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-full transition-all">
-          All Topics
-        </button>
-        <button onclick="filterCategory('color')" id="btn-color" class="filter-btn bg-brand-gray/80 text-gray-300 hover:text-brand-white border border-gray-800 font-medium px-5 py-2.5 rounded-full transition-all">
-          Color Grading
-        </button>
-        <button onclick="filterCategory('editing')" id="btn-editing" class="filter-btn bg-brand-gray/80 text-gray-300 hover:text-brand-white border border-gray-800 font-medium px-5 py-2.5 rounded-full transition-all">
-          Editing & FX
-        </button>
-        <button onclick="filterCategory('business')" id="btn-business" class="filter-btn bg-brand-gray/80 text-gray-300 hover:text-brand-white border border-gray-800 font-medium px-5 py-2.5 rounded-full transition-all">
-          Business of Creativity
-        </button>
-        <button onclick="filterCategory('luts')" id="btn-luts" class="filter-btn bg-brand-gray/80 text-gray-300 hover:text-brand-white border border-gray-800 font-medium px-5 py-2.5 rounded-full transition-all">
-          Presets & LUTs
-        </button>
+      <!-- Course Card 2 -->
+      <div class="course-card color-grading bg-brand-gray border border-gray-800 rounded-3xl overflow-hidden flex flex-col justify-between hover:border-brand-frost/60 transition-all group">
+        <div>
+          <div class="aspect-video bg-black/50 relative flex items-center justify-center p-4 border-b border-gray-800/80">
+            <span class="bg-brand-frost/20 text-brand-frost text-[10px] font-bold px-3 py-1 rounded-full border border-brand-frost/30 uppercase tracking-widest absolute top-4 left-4 font-sans">
+              Color Grading
+            </span>
+            <div class="text-center">
+              <span class="text-5xl font-heading text-gray-600 group-hover:text-brand-frost transition-colors">02</span>
+            </div>
+          </div>
+          <div class="p-6 space-y-3">
+            <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
+              DaVinci Resolve Dark Moody Course
+            </h3>
+            <p class="text-xs text-gray-400 leading-relaxed font-sans">
+              Master the Color page, Power Windows, Delta Keyer node setups, and custom film look creation for narrative projects.
+            </p>
+            <div class="pt-2 flex items-center justify-between text-[11px] text-gray-400 font-sans border-t border-gray-800/60">
+              <span>8 Modules • 2h 45m</span>
+              <span class="text-brand-frost font-semibold">Includes .drx PowerGrades</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 pt-0 mt-4 flex items-center justify-between border-t border-gray-800/80 pt-4">
+          <div>
+            <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
+            <span class="text-xl font-heading text-brand-frost">KES 3,000</span>
+          </div>
+          <button onclick="handleEnrollClick('davinci-moody')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+            Enroll Now
+          </button>
+        </div>
       </div>
+
+      <!-- Course Card 3 -->
+      <div class="course-card business bg-brand-gray border border-gray-800 rounded-3xl overflow-hidden flex flex-col justify-between hover:border-brand-frost/60 transition-all group">
+        <div>
+          <div class="aspect-video bg-black/50 relative flex items-center justify-center p-4 border-b border-gray-800/80">
+            <span class="bg-brand-frost/20 text-brand-frost text-[10px] font-bold px-3 py-1 rounded-full border border-brand-frost/30 uppercase tracking-widest absolute top-4 left-4 font-sans">
+              Business of Art
+            </span>
+            <div class="text-center">
+              <span class="text-5xl font-heading text-gray-600 group-hover:text-brand-frost transition-colors">03</span>
+            </div>
+          </div>
+          <div class="p-6 space-y-3">
+            <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
+              The Business of Creativity & Grant Writing
+            </h3>
+            <p class="text-xs text-gray-400 leading-relaxed font-sans">
+              How to pitch visual proposals, structure commercial budgets, submit grant applications, and commercialize your art.
+            </p>
+            <div class="pt-2 flex items-center justify-between text-[11px] text-gray-400 font-sans border-t border-gray-800/60">
+              <span>6 Modules • 1h 50m</span>
+              <span class="text-brand-frost font-semibold">Includes Pitch Deck PDF</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 pt-0 mt-4 flex items-center justify-between border-t border-gray-800/80 pt-4">
+          <div>
+            <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
+            <span class="text-xl font-heading text-brand-frost">KES 2,000</span>
+          </div>
+          <button onclick="handleEnrollClick('business-creativity')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+            Enroll Now
+          </button>
+        </div>
+      </div>
+
+      <!-- Course Card 4 -->
+      <div class="course-card documentary bg-brand-gray border border-gray-800 rounded-3xl overflow-hidden flex flex-col justify-between hover:border-brand-frost/60 transition-all group">
+        <div>
+          <div class="aspect-video bg-black/50 relative flex items-center justify-center p-4 border-b border-gray-800/80">
+            <span class="bg-brand-frost/20 text-brand-frost text-[10px] font-bold px-3 py-1 rounded-full border border-brand-frost/30 uppercase tracking-widest absolute top-4 left-4 font-sans">
+              Documentary Film
+            </span>
+            <div class="text-center">
+              <span class="text-5xl font-heading text-gray-600 group-hover:text-brand-frost transition-colors">04</span>
+            </div>
+          </div>
+          <div class="p-6 space-y-3">
+            <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
+              Authentic Human Connections in Documentary
+            </h3>
+            <p class="text-xs text-gray-400 leading-relaxed font-sans">
+              Directing non-actors, conducting intimate field interviews, and editing unscripted long-form documentary narratives.
+            </p>
+            <div class="pt-2 flex items-center justify-between text-[11px] text-gray-400 font-sans border-t border-gray-800/60">
+              <span>7 Modules • 2h 10m</span>
+              <span class="text-brand-frost font-semibold">Includes Interview Guide</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 pt-0 mt-4 flex items-center justify-between border-t border-gray-800/80 pt-4">
+          <div>
+            <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
+            <span class="text-xl font-heading text-brand-frost">KES 2,800</span>
+          </div>
+          <button onclick="handleEnrollClick('documentary-connections')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+            Enroll Now
+          </button>
+        </div>
+      </div>
+
+      <!-- Course Card 5 -->
+      <div class="course-card sound bg-brand-gray border border-gray-800 rounded-3xl overflow-hidden flex flex-col justify-between hover:border-brand-frost/60 transition-all group">
+        <div>
+          <div class="aspect-video bg-black/50 relative flex items-center justify-center p-4 border-b border-gray-800/80">
+            <span class="bg-brand-frost/20 text-brand-frost text-[10px] font-bold px-3 py-1 rounded-full border border-brand-frost/30 uppercase tracking-widest absolute top-4 left-4 font-sans">
+              Sound Design
+            </span>
+            <div class="text-center">
+              <span class="text-5xl font-heading text-gray-600 group-hover:text-brand-frost transition-colors">05</span>
+            </div>
+          </div>
+          <div class="p-6 space-y-3">
+            <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
+              Cinematic Sound Design & Ambient Mixing
+            </h3>
+            <p class="text-xs text-gray-400 leading-relaxed font-sans">
+              Building immersive soundscapes, dialogue cleaning, field recording techniques, and Fairlight audio post-production.
+            </p>
+            <div class="pt-2 flex items-center justify-between text-[11px] text-gray-400 font-sans border-t border-gray-800/60">
+              <span>5 Modules • 1h 35m</span>
+              <span class="text-brand-frost font-semibold">Includes WAV SFX Pack</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 pt-0 mt-4 flex items-center justify-between border-t border-gray-800/80 pt-4">
+          <div>
+            <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
+            <span class="text-xl font-heading text-brand-frost">KES 2,200</span>
+          </div>
+          <button onclick="handleEnrollClick('sound-design')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+            Enroll Now
+          </button>
+        </div>
+      </div>
+
+      <!-- Course Card 6 -->
+      <div class="course-card cinematography bg-brand-gray border border-gray-800 rounded-3xl overflow-hidden flex flex-col justify-between hover:border-brand-frost/60 transition-all group">
+        <div>
+          <div class="aspect-video bg-black/50 relative flex items-center justify-center p-4 border-b border-gray-800/80">
+            <span class="bg-brand-frost/20 text-brand-frost text-[10px] font-bold px-3 py-1 rounded-full border border-brand-frost/30 uppercase tracking-widest absolute top-4 left-4 font-sans">
+              Cinematography
+            </span>
+            <div class="text-center">
+              <span class="text-5xl font-heading text-gray-600 group-hover:text-brand-frost transition-colors">06</span>
+            </div>
+          </div>
+          <div class="p-6 space-y-3">
+            <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
+              Natural Light Photography & Composition
+            </h3>
+            <p class="text-xs text-gray-400 leading-relaxed font-sans">
+              Framing landscape portraits, shaping ambient sunlight, and developing consistent visual photo essays.
+            </p>
+            <div class="pt-2 flex items-center justify-between text-[11px] text-gray-400 font-sans border-t border-gray-800/60">
+              <span>4 Modules • 1h 15m</span>
+              <span class="text-brand-frost font-semibold">Includes Lightroom Presets</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 pt-0 mt-4 flex items-center justify-between border-t border-gray-800/80 pt-4">
+          <div>
+            <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
+            <span class="text-xl font-heading text-brand-frost">KES 1,800</span>
+          </div>
+          <button onclick="handleEnrollClick('natural-light-photo')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+            Enroll Now
+          </button>
+        </div>
+      </div>
+
     </div>
-
-    <!-- Course & Asset Cards Grid -->
-    <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      
-      <!-- Card 1: DaVinci Masterclass -->
-      <div class="card-item color bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
-              Masterclass
-            </span>
-            <span class="text-xs text-gray-400 font-sans">8 Lessons</span>
-          </div>
-          <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
-            DaVinci Resolve Dark & Moody Grade
-          </h3>
-          <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            Master non-destructive node structures, exposure balancing in low light, shadow density management, and Delta Keyer windows.
-          </p>
-        </div>
-        <div class="pt-6 flex items-center justify-between border-t border-gray-800/80 mt-6">
-          <span class="text-xs text-brand-frost font-bold font-sans">2h 45m</span>
-          <a href="course.html" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all">
-            Start Learning
-          </a>
-        </div>
-      </div>
-
-      <!-- Card 2: The Business of Creativity -->
-      <div class="card-item business bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
-              Workshop
-            </span>
-            <span class="text-xs text-gray-400 font-sans">6 Modules</span>
-          </div>
-          <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
-            The Business of Creativity
-          </h3>
-          <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            Structuring production proposals, client pitching, intellectual property buyouts, buyout rates, and financial workflows.
-          </p>
-        </div>
-        <div class="pt-6 flex items-center justify-between border-t border-gray-800/80 mt-6">
-          <span class="text-xs text-brand-frost font-bold font-sans">1h 50m</span>
-          <a href="course.html" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all">
-            Start Learning
-          </a>
-        </div>
-      </div>
-
-      <!-- Card 3: Dark Moody LUT Pack -->
-      <div class="card-item luts bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
-              Asset Pack
-            </span>
-            <span class="text-xs text-gray-400 font-sans">5 .CUBE Files</span>
-          </div>
-          <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
-            Forest Night Moody LUT Collection
-          </h3>
-          <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            Custom 3D LUT presets optimized for flat Log profiles, documentary skin tones, and rich shadow contrast.
-          </p>
-        </div>
-        <div class="pt-6 flex items-center justify-between border-t border-gray-800/80 mt-6">
-          <span class="text-xs text-brand-frost font-bold font-sans">Direct Download</span>
-          <a href="course.html" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all">
-            Get Assets
-          </a>
-        </div>
-      </div>
-
-      <!-- Card 4: Fusion Motion Graphics Setup -->
-      <div class="card-item editing bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
-              Masterclass
-            </span>
-            <span class="text-xs text-gray-400 font-sans">5 Lessons</span>
-          </div>
-          <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
-            DaVinci Fusion Keying & Motion Graphics
-          </h3>
-          <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            Delta Keyer compositing without green screens, 3D space layouts, optical flow transformations, and clean lower thirds.
-          </p>
-        </div>
-        <div class="pt-6 flex items-center justify-between border-t border-gray-800/80 mt-6">
-          <span class="text-xs text-brand-frost font-bold font-sans">1h 30m</span>
-          <a href="course.html" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all">
-            Start Learning
-          </a>
-        </div>
-      </div>
-
-      <!-- Card 5: Media Asset Management Workflow -->
-      <div class="card-item editing bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
-              Guide
-            </span>
-            <span class="text-xs text-gray-400 font-sans">4 Lessons</span>
-          </div>
-          <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
-            Post-Production Media Asset System
-          </h3>
-          <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            Setting up standardized 5-folder directory structures for raw footage, project files, audio stems, and final deliverables.
-          </p>
-        </div>
-        <div class="pt-6 flex items-center justify-between border-t border-gray-800/80 mt-6">
-          <span class="text-xs text-brand-frost font-bold font-sans">45 mins</span>
-          <a href="course.html" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all">
-            Start Learning
-          </a>
-        </div>
-      </div>
-
-      <!-- Card 6: Pitch Deck & Proposal Templates -->
-      <div class="card-item business bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
-              Template Kit
-            </span>
-            <span class="text-xs text-gray-400 font-sans">3 Pitch Decks</span>
-          </div>
-          <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
-            Creative Proposal & Pitch Deck Suite
-          </h3>
-          <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            Ready-to-use investor decks, sponsor proposal frameworks, and technical videography pitch templates.
-          </p>
-        </div>
-        <div class="pt-6 flex items-center justify-between border-t border-gray-800/80 mt-6">
-          <span class="text-xs text-brand-frost font-bold font-sans">Direct Download</span>
-          <a href="course.html" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all">
-            Get Assets
-          </a>
-        </div>
-      </div>
-
-    </div>
-
   </main>
 
-  <!-- Global Footer -->
-  <footer class="border-t border-gray-800 py-10 px-6 md:px-10 bg-black text-xs text-gray-400 font-sans mt-auto">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-      <div class="text-xl font-heading text-brand-white tracking-widest">CALLED TO CREATE</div>
-      <p>© 2026 Called to Create Ltd. All rights reserved.</p>
-      <div class="flex space-x-6 text-gray-400">
-        <a href="#" class="hover:text-brand-white">Terms</a>
-        <a href="#" class="hover:text-brand-white">Privacy</a>
-        <a href="#" class="hover:text-brand-white">Support</a>
+  <!-- Slide-Out Auth Side Drawer Overlay & Drawer -->
+  <div id="authDrawerOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden transition-opacity" onclick="closeAuthDrawer()"></div>
+
+  <div id="authDrawer" class="fixed top-0 right-0 w-full max-w-md h-full bg-brand-forest border-l border-gray-800 z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between p-8">
+    <div>
+      <div class="flex justify-between items-center border-b border-gray-800 pb-4 mb-8">
+        <div class="flex space-x-6">
+          <button id="tabLogin" onclick="switchAuthTab('login')" class="text-xl font-heading tracking-wide text-brand-frost border-b-2 border-brand-frost pb-1 cursor-pointer">Log In</button>
+          <button id="tabSignup" onclick="switchAuthTab('signup')" class="text-xl font-heading tracking-wide text-gray-400 hover:text-brand-white pb-1 cursor-pointer">Create Account</button>
+        </div>
+        <button onclick="closeAuthDrawer()" class="text-gray-400 hover:text-brand-white text-lg font-bold cursor-pointer">✕</button>
       </div>
+
+      <!-- Log In Form -->
+      <form id="loginForm" class="space-y-5" onsubmit="handleLogin(event)">
+        <div>
+          <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Email Address</label>
+          <input id="loginEmail" type="email" required placeholder="creator@calledtocreate.com" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
+        </div>
+        <div>
+          <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Password</label>
+          <input id="loginPassword" type="password" required placeholder="••••••••" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
+        </div>
+        <p id="loginStatus" class="text-xs hidden font-sans"></p>
+        <button id="loginSubmitBtn" type="submit" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90 transition-all mt-4 font-sans cursor-pointer">
+          Sign In to Library
+        </button>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form id="signupForm" class="space-y-5 hidden" onsubmit="handleSignup(event)">
+        <div>
+          <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Full Name</label>
+          <input id="signupName" type="text" required placeholder="Your Name" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
+        </div>
+        <div>
+          <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Email Address</label>
+          <input id="signupEmail" type="email" required placeholder="creator@calledtocreate.com" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
+        </div>
+        <div>
+          <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Password</label>
+          <input id="signupPassword" type="password" required placeholder="••••••••" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
+        </div>
+        <p id="signupStatus" class="text-xs hidden font-sans"></p>
+        <button id="signupSubmitBtn" type="submit" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90 transition-all mt-4 font-sans cursor-pointer">
+          Create Account & Access Courses
+        </button>
+      </form>
+    </div>
+
+    <div class="border-t border-gray-800 pt-6 text-center text-xs text-gray-400 font-sans">
+      <p>Pay-per-course model • Lifetime access included</p>
+    </div>
+  </div>
+
+  <!-- Global Footer -->
+  <footer class="border-t border-gray-800 bg-black text-xs text-gray-400 font-sans mt-auto py-16 px-6 md:px-10">
+    <div class="max-w-7xl mx-auto space-y-12">
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+        
+        <!-- Column 1: Full Logo & Description -->
+        <div class="space-y-4 md:col-span-1">
+          <a href="index.html" class="inline-block">
+            <img src="C2C Logo (White).png" alt="Called to Create Logo" class="h-14 w-auto object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+            <div class="text-2xl font-heading tracking-widest text-brand-white hidden">CALLED TO CREATE</div>
+          </a>
+          <p class="text-gray-400 text-xs leading-relaxed">
+            An independent platform dedicated to equipping filmmakers, photographers, and visual artists with specialized education and practical digital tools.
+          </p>
+        </div>
+
+        <!-- Column 2: Navigation -->
+        <div class="space-y-3">
+          <h4 class="text-brand-white font-heading text-lg tracking-wider">Navigation</h4>
+          <ul class="space-y-2">
+            <li><a href="index.html" class="hover:text-brand-white transition-colors">Home</a></li>
+            <li><a href="explore.html" class="hover:text-brand-white transition-colors">Explore Courses</a></li>
+            <li><a href="how-it-works.html" class="hover:text-brand-white transition-colors">How It Works</a></li>
+            <li><a href="shop.html" class="hover:text-brand-white transition-colors">Digital Assets Shop</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Social Links -->
+        <div class="space-y-3">
+          <h4 class="text-brand-white font-heading text-lg tracking-wider">Connect</h4>
+          <ul class="space-y-2">
+            <li>
+              <a href="https://www.instagram.com/calledtocreate_c2c/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-gray-400 hover:text-brand-white transition-colors">
+                <svg class="w-4 h-4 text-brand-frost" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                <span>Instagram</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://www.linkedin.com/company/called-to-create-c2c/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-gray-400 hover:text-brand-white transition-colors">
+                <svg class="w-4 h-4 text-brand-frost" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                <span>LinkedIn</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Column 4: Newsletter -->
+        <div class="space-y-3">
+          <h4 class="text-brand-white font-heading text-lg tracking-wider">Stay Updated</h4>
+          <p class="text-gray-400 text-xs">Receive platform updates, asset drops, and creative advice directly in your inbox.</p>
+          <form id="footerNewsletterForm" onsubmit="handleFooterSubscribe(event)" class="flex flex-col gap-2">
+            <input 
+              type="email" 
+              id="footerEmailInput"
+              required 
+              placeholder="Your email address" 
+              class="w-full bg-brand-gray border border-gray-800 rounded-xl px-3 py-2 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans"
+            />
+            <button 
+              type="submit" 
+              id="footerSubmitBtn"
+              class="bg-brand-frost text-brand-forest font-bold py-2 rounded-xl text-xs hover:bg-opacity-90 transition-all font-sans cursor-pointer"
+            >
+              Join Newsletter
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="border-t border-gray-800/80 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-[11px]">
+        <p>© 2026 Called to Create Ltd. All rights reserved.</p>
+        <div class="flex space-x-6">
+          <a href="terms.html" class="hover:text-brand-white">Terms of Service</a>
+          <a href="privacy.html" class="hover:text-brand-white">Privacy Policy</a>
+          <a href="support.html" class="hover:text-brand-white">Support</a>
+        </div>
+      </div>
+
     </div>
   </footer>
 
-  <!-- Interactive Filtering & Search Logic -->
-  <script>
-    function filterCategory(category) {
-      const cards = document.querySelectorAll('.card-item');
-      const buttons = document.querySelectorAll('.filter-btn');
+  <!-- Supabase CDN SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-      // Reset button styles
-      buttons.forEach(btn => {
-        btn.className = "filter-btn bg-brand-gray/80 text-gray-300 hover:text-brand-white border border-gray-800 font-medium px-5 py-2.5 rounded-full transition-all";
+  <!-- Page Logic & Auth Integration -->
+  <script>
+    // Initialize Supabase Client globally
+    const SUPABASE_URL = 'https://ecbftpfbbfvcxreszsfo.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_AQZBPX4R8Q4IxQnKO2euYw_IWwlxlb9';
+
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+
+    // Auth State Listener
+    document.addEventListener("DOMContentLoaded", () => {
+      window.supabaseClient.auth.onAuthStateChange((event, session) => {
+        currentUser = session ? session.user : null;
+        updateNavForAuth(currentUser);
+      });
+    });
+
+    // Dynamic Navigation Header
+    function updateNavForAuth(user) {
+      const navContainer = document.getElementById('navAuthButtons');
+      if (!navContainer) return;
+
+      if (user) {
+        navContainer.innerHTML = `
+          <a href="library.html" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all text-xs font-sans">
+            My Library
+          </a>
+          <button onclick="handleSignOut()" class="text-gray-400 hover:text-brand-white text-xs font-sans border border-gray-800 hover:border-gray-600 px-3 py-1.5 rounded-xl transition-all cursor-pointer">
+            Sign Out
+          </button>
+        `;
+      } else {
+        navContainer.innerHTML = `
+          <button onclick="openAuthDrawer('login')" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2 cursor-pointer">
+            Log In
+          </button>
+          <button onclick="openAuthDrawer('signup')" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs font-sans cursor-pointer">
+            Sign Up
+          </button>
+        `;
+      }
+    }
+
+    // Handle Enrollment Action
+    function handleEnrollClick(courseId) {
+      if (currentUser) {
+        window.location.href = `library.html?enroll=${courseId}`;
+      } else {
+        openAuthDrawer('signup');
+      }
+    }
+
+    // Sign Out Action
+    async function handleSignOut() {
+      await window.supabaseClient.auth.signOut();
+      window.location.reload();
+    }
+
+    // Category Filtering Logic
+    function filterCategory(category) {
+      const cards = document.querySelectorAll('.course-card');
+      const pills = document.querySelectorAll('.cat-pill');
+      let visible = 0;
+
+      pills.forEach(pill => {
+        pill.className = "cat-pill bg-brand-gray text-gray-300 hover:text-brand-white px-5 py-2.5 rounded-full cursor-pointer transition-colors whitespace-nowrap border border-gray-800";
       });
 
-      // Highlight active button
-      const activeBtn = document.getElementById('btn-' + category);
-      if (activeBtn) {
-        activeBtn.className = "filter-btn bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-full transition-all";
+      const activePill = document.getElementById(`cat-${category}`);
+      if (activePill) {
+        activePill.className = "cat-pill bg-brand-frost text-brand-forest px-5 py-2.5 rounded-full font-bold cursor-pointer transition-all";
       }
 
-      // Show/Hide Cards
       cards.forEach(card => {
         if (category === 'all' || card.classList.contains(category)) {
           card.style.display = 'flex';
+          visible++;
         } else {
           card.style.display = 'none';
         }
       });
+
+      document.getElementById('courseCount').textContent = visible;
     }
 
-    // Dynamic Search Filter
-    document.getElementById('searchInput').addEventListener('keyup', function(e) {
-      const term = e.target.value.toLowerCase();
-      const cards = document.querySelectorAll('.card-item');
+    // Side Auth Drawer Controls
+    function openAuthDrawer(tab) {
+      const overlay = document.getElementById('authDrawerOverlay');
+      const drawer = document.getElementById('authDrawer');
+      
+      switchAuthTab(tab);
+      
+      overlay.classList.remove('hidden');
+      setTimeout(() => {
+        drawer.classList.remove('translate-x-full');
+      }, 10);
+    }
 
-      cards.forEach(card => {
-        const title = card.querySelector('h3').textContent.toLowerCase();
-        const desc = card.querySelector('p').textContent.toLowerCase();
-        
-        if (title.includes(term) || desc.includes(term)) {
-          card.style.display = 'flex';
-        } else {
-          card.style.display = 'none';
-        }
+    function closeAuthDrawer() {
+      const overlay = document.getElementById('authDrawerOverlay');
+      const drawer = document.getElementById('authDrawer');
+      
+      drawer.classList.add('translate-x-full');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+      }, 300);
+    }
+
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
+      const tabLogin = document.getElementById('tabLogin');
+      const tabSignup = document.getElementById('tabSignup');
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+        tabLogin.className = "text-xl font-heading tracking-wide text-brand-frost border-b-2 border-brand-frost pb-1 cursor-pointer";
+        tabSignup.className = "text-xl font-heading tracking-wide text-gray-400 hover:text-brand-white pb-1 cursor-pointer";
+      } else {
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+        tabSignup.className = "text-xl font-heading tracking-wide text-brand-frost border-b-2 border-brand-frost pb-1 cursor-pointer";
+        tabLogin.className = "text-xl font-heading tracking-wide text-gray-400 hover:text-brand-white pb-1 cursor-pointer";
+      }
+    }
+
+    // Supabase Sign In Handler
+    async function handleLogin(event) {
+      event.preventDefault();
+      
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const statusText = document.getElementById('loginStatus');
+      const submitBtn = document.getElementById('loginSubmitBtn');
+
+      statusText.classList.remove('hidden', 'text-red-400');
+      statusText.classList.add('text-brand-frost');
+      statusText.textContent = 'Authenticating...';
+      submitBtn.disabled = true;
+
+      const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        statusText.textContent = error.message;
+        statusText.classList.remove('text-brand-frost');
+        statusText.classList.add('text-red-400');
+        submitBtn.disabled = false;
+      } else {
+        statusText.textContent = 'Success! Redirecting to library...';
+        setTimeout(() => {
+          window.location.href = 'library.html';
+        }, 1000);
+      }
+    }
+
+    // Supabase Sign Up Handler
+    async function handleSignup(event) {
+      event.preventDefault();
+
+      const fullName = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const statusText = document.getElementById('signupStatus');
+      const submitBtn = document.getElementById('signupSubmitBtn');
+
+      statusText.classList.remove('hidden', 'text-red-400');
+      statusText.classList.add('text-brand-frost');
+      statusText.textContent = 'Creating account...';
+      submitBtn.disabled = true;
+
+      const { data, error } = await window.supabaseClient.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } }
       });
-    });
+
+      if (error) {
+        statusText.textContent = error.message;
+        statusText.classList.remove('text-brand-frost');
+        statusText.classList.add('text-red-400');
+        submitBtn.disabled = false;
+      } else {
+        statusText.textContent = 'Account created! Please check your email to confirm.';
+      }
+    }
+
+    // Dynamic Footer Newsletter Subscription (Connected to Supabase)
+async function handleFooterSubscribe(event) {
+  event.preventDefault();
+  const btn = document.getElementById('footerSubmitBtn');
+  const input = document.getElementById('footerEmailInput');
+  const email = input.value.trim();
+
+  if (!email) return;
+
+  // UI state: Loading
+  btn.disabled = true;
+  const originalBtnText = btn.textContent;
+  btn.textContent = 'Submitting...';
+
+  try {
+    // Insert email into Supabase newsletter_subscribers table
+    const { data, error } = await window.supabaseClient
+      .from('newsletter_subscribers')
+      .insert([{ email }]);
+
+    if (error) {
+      // 23505 is PostgreSQL error code for unique constraint violation (duplicate email)
+      if (error.code === '23505') {
+        btn.textContent = 'Already Subscribed!';
+        btn.classList.remove('bg-brand-frost', 'text-brand-forest');
+        btn.classList.add('bg-emerald-600', 'text-white', 'cursor-default');
+        input.value = '';
+        input.placeholder = 'You are on the list!';
+        input.disabled = true;
+      } else {
+        console.error('Newsletter error:', error);
+        btn.textContent = 'Try Again';
+        btn.disabled = false;
+      }
+    } else {
+      // Success state
+      btn.textContent = 'Subscribed!';
+      btn.classList.remove('bg-brand-frost', 'text-brand-forest', 'hover:bg-opacity-90');
+      btn.classList.add('bg-emerald-600', 'text-white', 'cursor-default');
+      input.value = '';
+      input.placeholder = 'Thank you for joining us!';
+      input.disabled = true;
+    }
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    btn.textContent = 'Try Again';
+    btn.disabled = false;
+  }
+}
   </script>
 
 </body>

@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Digital Assets Shop | Called to Create</title>
+  <title>Search Results | Called to Create</title>
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Google Fonts: Bebas Neue (Heading) & Decalotype (Sans/Body) -->
+  <!-- Google Fonts: Bebas Neue & Decalotype -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Decalotype:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -17,10 +17,10 @@
         extend: {
           colors: {
             brand: {
-              forest: '#132519', // Primary Forest Night
-              frost: '#98A869',  // Primary Frost Green
-              gray: '#212121',   // Secondary Dark Gray
-              white: '#FFFFFF',  // Secondary White
+              forest: '#132519',
+              frost: '#98A869',
+              gray: '#212121',
+              white: '#FFFFFF',
             }
           },
           fontFamily: {
@@ -34,42 +34,39 @@
 </head>
 <body class="bg-brand-forest text-brand-white font-sans antialiased selection:bg-brand-frost selection:text-brand-forest min-h-screen flex flex-col relative bg-[url('Background.png')] bg-repeat bg-center">
 
-  <!-- Subtle Dark Overlay -->
   <div class="fixed inset-0 bg-brand-forest/95 pointer-events-none -z-10"></div>
 
-  <!-- Header / Navigation -->
+  <!-- Header -->
   <header class="flex flex-col md:flex-row justify-between items-center px-6 md:px-10 py-4 border-b border-brand-gray/60 gap-4 sticky top-0 bg-brand-forest/95 backdrop-blur-md z-40">
-    <div class="flex items-center space-x-6">
-      <a href="index.html" class="inline-block transition-transform hover:scale-105">
-        <img 
-          src="C2C Logo (White).png" 
-          alt="Called to Create Logo" 
-          class="h-12 md:h-16 w-auto object-contain transition-all"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-        />
-        <div class="text-3xl font-heading tracking-widest text-brand-white hover:text-brand-frost transition-colors hidden">
-          CALLED TO CREATE
-        </div>
-      </a>
-    </div>
+    <a href="index.html" class="inline-block transition-transform hover:scale-105">
+      <img src="C2C Logo (White).png" alt="Called to Create Logo" class="h-12 md:h-16 w-auto object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+      <div class="text-3xl font-heading tracking-widest text-brand-white hover:text-brand-frost transition-colors hidden">CALLED TO CREATE</div>
+    </a>
+    
+    <!-- Active Search Bar -->
+    <form action="search.html" method="GET" class="w-full md:w-1/3 relative">
+      <input 
+        type="text" 
+        id="pageSearchInput"
+        name="q"
+        placeholder="Search courses, digital assets, topics..." 
+        class="w-full bg-brand-gray border border-gray-700 text-brand-white px-4 py-2 pl-10 pr-4 rounded-full text-sm focus:outline-none focus:border-brand-frost transition-all placeholder-gray-400 font-sans"
+      />
+      <button type="submit" class="absolute left-3.5 top-2.5 text-gray-400 hover:text-brand-frost transition-colors cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </button>
+    </form>
 
-    <!-- Navigation Links -->
     <nav class="flex items-center space-x-6 text-sm font-medium">
-      <a href="index.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs font-sans">
-        Home
-      </a>
-      <a href="explore.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs font-sans">
-        Explore
-      </a>
-      <a href="shop.html" class="text-brand-frost font-bold border-b-2 border-brand-frost pb-0.5 text-xs font-sans">
-        Digital Assets
-      </a>
-      <a href="how-it-works.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs font-sans">
-        How It Works
-      </a>
+      <a href="index.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs">Home</a>
+      <a href="explore.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs">Explore</a>
+      <a href="shop.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs">Digital Assets</a>
+      <a href="how-it-works.html" class="text-gray-300 hover:text-brand-white transition-colors text-xs">How It Works</a>
     </nav>
 
-    <!-- Dynamic Account Actions -->
+    <!-- Account Action Triggers (Dynamic Auth Container) -->
     <div id="navAuthButtons" class="flex items-center space-x-4">
       <button onclick="openAuthDrawer('login')" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2 cursor-pointer">
         Log In
@@ -80,221 +77,42 @@
     </div>
   </header>
 
-  <!-- Main Shop Section -->
-  <main class="max-w-7xl mx-auto w-full px-6 md:px-10 py-10 flex-grow space-y-10">
+  <!-- Search Results Main Content -->
+  <main class="max-w-7xl mx-auto w-full px-6 md:px-10 py-12 flex-grow space-y-8">
     
-    <!-- Hero Title & Cart Trigger Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-800/80 pb-8">
-      <div class="space-y-3 max-w-2xl">
-        <span class="text-xs text-brand-frost font-bold uppercase tracking-widest block font-sans">
-          Production-Ready Deliverables
-        </span>
-        <h1 class="text-4xl md:text-5xl font-heading tracking-wide text-brand-white">
-          Digital Assets & Creator Tools
+    <!-- Title Header -->
+    <div class="border-b border-gray-800 pb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <div>
+        <span class="text-xs text-brand-frost font-bold uppercase tracking-widest block font-sans">Platform Search</span>
+        <h1 class="text-4xl md:text-5xl font-heading tracking-wide text-brand-white mt-1">
+          Search Results
         </h1>
-        <p class="text-xs md:text-sm text-gray-300 font-sans leading-relaxed">
-          Download color grading PowerGrades, 4K film overlays, pitch deck templates, soundscapes, and production management tools tailored for independent filmmakers.
+        <p id="searchSummaryText" class="text-xs md:text-sm text-gray-400 font-sans mt-2">
+          Showing matching courses and digital assets...
         </p>
       </div>
 
-      <!-- Quick Cart Button -->
-      <button onclick="toggleCartDrawer()" class="bg-brand-gray border border-gray-800 hover:border-brand-frost/50 text-brand-white px-6 py-3 rounded-2xl font-bold flex items-center gap-3 transition-all cursor-pointer">
-        <span class="text-xs">Your Asset Cart</span>
-        <span id="cartCountBadge" class="bg-brand-frost text-brand-forest font-bold text-xs px-2.5 py-0.5 rounded-full">0</span>
-      </button>
-    </div>
-
-    <!-- Search & Filter Bar -->
-    <div class="space-y-6">
-      <div class="relative max-w-xl">
-        <input 
-          type="text" 
-          id="searchInput" 
-          placeholder="Search PowerGrades, pitch decks, overlays, WAV audio..." 
-          class="w-full bg-brand-gray/90 border border-gray-800 rounded-2xl py-3.5 pl-11 pr-4 text-xs md:text-sm text-brand-white placeholder-gray-500 focus:outline-none focus:border-brand-frost transition-all"
-        />
-        <svg class="w-5 h-5 text-gray-500 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-        </svg>
-      </div>
-
-      <!-- Category Tabs -->
-      <div class="flex flex-wrap gap-3 font-sans text-xs">
-        <button onclick="filterShop('all')" id="btn-all" class="shop-filter-btn bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-full transition-all cursor-pointer">
-          All Deliverables
-        </button>
-        <button onclick="filterShop('luts')" id="btn-luts" class="shop-filter-btn bg-brand-gray/80 text-gray-300 hover:text-brand-white border border-gray-800 font-medium px-5 py-2.5 rounded-full transition-all cursor-pointer">
-          LUTs & PowerGrades
-        </button>
-        <button onclick="filterShop('templates')" id="btn-templates" class="shop-filter-btn bg-brand-gray/80 text-gray-300 hover:text-brand-white border border-gray-800 font-medium px-5 py-2.5 rounded-full transition-all cursor-pointer">
-          Pitch & Proposal Kits
-        </button>
-        <button onclick="filterShop('fx')" id="btn-fx" class="shop-filter-btn bg-brand-gray/80 text-gray-300 hover:text-brand-white border border-gray-800 font-medium px-5 py-2.5 rounded-full transition-all cursor-pointer">
-          Overlays & FX
-        </button>
-        <button onclick="filterShop('audio')" id="btn-audio" class="shop-filter-btn bg-brand-gray/80 text-gray-300 hover:text-brand-white border border-gray-800 font-medium px-5 py-2.5 rounded-full transition-all cursor-pointer">
-          Ambient Audio SFX
-        </button>
+      <!-- Result Filter Tabs -->
+      <div class="flex space-x-2 text-xs font-sans">
+        <button onclick="filterResultType('all')" id="tab-all" class="bg-brand-frost text-brand-forest font-bold px-4 py-2 rounded-full cursor-pointer">All Results</button>
+        <button onclick="filterResultType('course')" id="tab-course" class="bg-brand-gray text-gray-300 hover:text-brand-white px-4 py-2 rounded-full border border-gray-800 cursor-pointer">Courses</button>
+        <button onclick="filterResultType('asset')" id="tab-asset" class="bg-brand-gray text-gray-300 hover:text-brand-white px-4 py-2 rounded-full border border-gray-800 cursor-pointer">Digital Assets</button>
       </div>
     </div>
 
-    <!-- Assets Grid -->
-    <div id="assetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      
-      <!-- Asset Card 1 -->
-      <div class="shop-item luts bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
-              DaVinci PowerGrade
-            </span>
-            <span class="text-xs text-brand-frost font-bold font-sans">KES 3,500</span>
-          </div>
-          <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
-            Dark Moody PowerGrade Collection
-          </h3>
-          <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            Non-destructive node tree presets, shadow retention keys, and low-light skin tone balancing built for Log footage.
-          </p>
-        </div>
-        <div class="pt-6 flex items-center justify-between border-t border-gray-800/80 mt-6">
-          <span class="text-[10px] text-gray-400 font-sans">ZIP • 18 MB (.drx)</span>
-          <button onclick="addToCart('Dark Moody PowerGrade Collection', 3500)" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
-            Get Asset
-          </button>
-        </div>
-      </div>
-
-      <!-- Asset Card 2 -->
-      <div class="shop-item templates bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
-              Template Suite
-            </span>
-            <span class="text-xs text-brand-frost font-bold font-sans">KES 2,400</span>
-          </div>
-          <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
-            Creative Proposal & Pitch Deck Suite
-          </h3>
-          <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            16:9 minimalist client presentation decks, sponsor outreach layouts, and video production proposal templates.
-          </p>
-        </div>
-        <div class="pt-6 flex items-center justify-between border-t border-gray-800/80 mt-6">
-          <span class="text-[10px] text-gray-400 font-sans">PDF / Canva Template</span>
-          <button onclick="addToCart('Creative Proposal & Pitch Deck Suite', 2400)" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
-            Get Asset
-          </button>
-        </div>
-      </div>
-
-      <!-- Asset Card 3 -->
-      <div class="shop-item fx bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
-              4K Video FX
-            </span>
-            <span class="text-xs text-brand-frost font-bold font-sans">KES 2,900</span>
-          </div>
-          <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
-            16mm Film Grain & Light Leak Pack
-          </h3>
-          <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            Authentic scanned film grain, flash frames, and light leak textures. Drag and drop onto Premiere or Resolve timelines.
-          </p>
-        </div>
-        <div class="pt-6 flex items-center justify-between border-t border-gray-800/80 mt-6">
-          <span class="text-[10px] text-gray-400 font-sans">4K ProRes 422 • 3.2 GB</span>
-          <button onclick="addToCart('16mm Film Grain & Light Leak Pack', 2900)" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
-            Get Asset
-          </button>
-        </div>
-      </div>
-
-      <!-- Asset Card 4 -->
-      <div class="shop-item audio bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
-              Audio SFX
-            </span>
-            <span class="text-xs text-brand-frost font-bold font-sans">KES 1,900</span>
-          </div>
-          <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
-            East African Ambient Soundscapes
-          </h3>
-          <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            Uncompressed field recordings of atmospheric urban textures, market chatter, natural acoustics, and room tones.
-          </p>
-        </div>
-        <div class="pt-6 flex items-center justify-between border-t border-gray-800/80 mt-6">
-          <span class="text-[10px] text-gray-400 font-sans">24-bit / 48kHz WAV</span>
-          <button onclick="addToCart('East African Ambient Soundscapes', 1900)" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
-            Get Asset
-          </button>
-        </div>
-      </div>
-
-      <!-- Asset Card 5 -->
-      <div class="shop-item templates bg-brand-gray border border-gray-800 rounded-3xl p-6 flex flex-col justify-between hover:border-gray-700 transition-all group">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] text-brand-frost font-bold uppercase tracking-widest bg-brand-forest border border-brand-frost/30 px-3 py-1 rounded-full">
-              Production Tool
-            </span>
-            <span class="text-xs text-brand-frost font-bold font-sans">KES 1,500</span>
-          </div>
-          <h3 class="text-2xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
-            Production Budget & Asset Tracker
-          </h3>
-          <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            Google Sheets system configured for shot list logging, automated crew fee calculations, and client invoice generation.
-          </p>
-        </div>
-        <div class="pt-6 flex items-center justify-between border-t border-gray-800/80 mt-6">
-          <span class="text-[10px] text-gray-400 font-sans">Google Sheets System</span>
-          <button onclick="addToCart('Production Budget & Asset Tracker', 1500)" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
-            Get Asset
-          </button>
-        </div>
-      </div>
-
+    <!-- Results Grid -->
+    <div id="searchResultsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Dynamic search cards will render here -->
     </div>
+
   </main>
-
-  <!-- Slide-Out Cart Drawer -->
-  <div id="cartDrawer" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex justify-end">
-    <div class="bg-brand-forest border-l border-gray-800 w-full max-w-md h-full p-8 flex flex-col justify-between">
-      <div class="space-y-6">
-        <div class="flex justify-between items-center border-b border-gray-800 pb-4">
-          <h2 class="text-2xl font-heading tracking-wide text-brand-white">Selected Assets</h2>
-          <button onclick="toggleCartDrawer()" class="text-gray-400 hover:text-brand-white text-lg font-bold cursor-pointer">✕</button>
-        </div>
-        
-        <div id="cartItemsList" class="space-y-4 text-xs font-sans max-h-[60vh] overflow-y-auto pr-1">
-          <p class="text-gray-400">Your cart is empty.</p>
-        </div>
-      </div>
-
-      <div class="border-t border-gray-800 pt-6 space-y-4">
-        <div class="flex justify-between text-sm font-sans">
-          <span class="text-gray-400">Total</span>
-          <span id="cartTotal" class="text-brand-frost font-bold">KES 0</span>
-        </div>
-        <button onclick="handleCheckout()" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
-          Instant Download Checkout
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- Slide-Out Auth Side Drawer Overlay & Drawer -->
   <div id="authDrawerOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden transition-opacity" onclick="closeAuthDrawer()"></div>
 
   <div id="authDrawer" class="fixed top-0 right-0 w-full max-w-md h-full bg-brand-forest border-l border-gray-800 z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between p-8">
     <div>
+      <!-- Header Tabs -->
       <div class="flex justify-between items-center border-b border-gray-800 pb-4 mb-8">
         <div class="flex space-x-6">
           <button id="tabLogin" onclick="switchAuthTab('login')" class="text-xl font-heading tracking-wide text-brand-frost border-b-2 border-brand-frost pb-1 cursor-pointer">Log In</button>
@@ -313,13 +131,23 @@
           <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Password</label>
           <input id="loginPassword" type="password" required placeholder="••••••••" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
         </div>
+        <div class="flex justify-between items-center text-xs text-gray-400 font-sans">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" class="rounded bg-brand-gray border-gray-800 text-brand-frost focus:ring-0" />
+            <span>Remember me</span>
+          </label>
+          <a href="#" class="hover:text-brand-white">Forgot Password?</a>
+        </div>
+        
+        <!-- Status Notification text for Log In -->
         <p id="loginStatus" class="text-xs hidden font-sans"></p>
+
         <button id="loginSubmitBtn" type="submit" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90 transition-all mt-4 font-sans cursor-pointer">
           Sign In to Library
         </button>
       </form>
 
-      <!-- Sign Up Form -->
+      <!-- Sign Up Form (Hidden by default) -->
       <form id="signupForm" class="space-y-5 hidden" onsubmit="handleSignup(event)">
         <div>
           <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Full Name</label>
@@ -333,15 +161,18 @@
           <label class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2 font-sans">Password</label>
           <input id="signupPassword" type="password" required placeholder="••••••••" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans" />
         </div>
+
+        <!-- Status Notification text for Sign Up -->
         <p id="signupStatus" class="text-xs hidden font-sans"></p>
+
         <button id="signupSubmitBtn" type="submit" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90 transition-all mt-4 font-sans cursor-pointer">
-          Create Account & Access Courses
+          Create Account & Access Classes
         </button>
       </form>
     </div>
 
     <div class="border-t border-gray-800 pt-6 text-center text-xs text-gray-400 font-sans">
-      <p>Pay-per-course model • Lifetime access included</p>
+      <p>Pay-per-class model • Lifetime access included</p>
     </div>
   </div>
 
@@ -441,26 +272,31 @@
   <!-- Supabase CDN SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Script Logic -->
+  <!-- Search Engine & Auth Logic -->
   <script>
-    // Initialize Supabase Client
+    // Initialize Supabase Client globally
     const SUPABASE_URL = 'https://ecbftpfbbfvcxreszsfo.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_AQZBPX4R8Q4IxQnKO2euYw_IWwlxlb9';
 
     window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
-    let cart = [];
 
-    // Auth State Listener
+    // Listen for Auth State Changes & Update Navigation
     document.addEventListener("DOMContentLoaded", () => {
       window.supabaseClient.auth.onAuthStateChange((event, session) => {
         currentUser = session ? session.user : null;
         updateNavForAuth(currentUser);
       });
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const query = urlParams.get('q') || '';
+      
+      document.getElementById('pageSearchInput').value = query;
+      executeSearch(query);
     });
 
-    // Dynamic Navigation Header
+    // Toggle Header Buttons dynamically based on auth status
     function updateNavForAuth(user) {
       const navContainer = document.getElementById('navAuthButtons');
       if (!navContainer) return;
@@ -486,111 +322,13 @@
       }
     }
 
+    // Global Sign Out Function
     async function handleSignOut() {
       await window.supabaseClient.auth.signOut();
       window.location.reload();
     }
 
-    // Shop Filtering & Search
-    function filterShop(category) {
-      const items = document.querySelectorAll('.shop-item');
-      const buttons = document.querySelectorAll('.shop-filter-btn');
-
-      buttons.forEach(btn => {
-        btn.className = "shop-filter-btn bg-brand-gray/80 text-gray-300 hover:text-brand-white border border-gray-800 font-medium px-5 py-2.5 rounded-full transition-all cursor-pointer";
-      });
-
-      const activeBtn = document.getElementById('btn-' + category);
-      if (activeBtn) {
-        activeBtn.className = "shop-filter-btn bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-full transition-all cursor-pointer";
-      }
-
-      items.forEach(item => {
-        if (category === 'all' || item.classList.contains(category)) {
-          item.style.display = 'flex';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    }
-
-    document.getElementById('searchInput').addEventListener('keyup', function(e) {
-      const term = e.target.value.toLowerCase();
-      const items = document.querySelectorAll('.shop-item');
-
-      items.forEach(item => {
-        const title = item.querySelector('h3').textContent.toLowerCase();
-        const desc = item.querySelector('p').textContent.toLowerCase();
-        if (title.includes(term) || desc.includes(term)) {
-          item.style.display = 'flex';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    });
-
-    // Cart Drawer Controls
-    function toggleCartDrawer() {
-      const drawer = document.getElementById('cartDrawer');
-      drawer.classList.toggle('hidden');
-    }
-
-    function addToCart(title, price) {
-      cart.push({ title, price });
-      updateCartUI();
-      toggleCartDrawer();
-    }
-
-    function updateCartUI() {
-      const countBadge = document.getElementById('cartCountBadge');
-      const list = document.getElementById('cartItemsList');
-      const totalEl = document.getElementById('cartTotal');
-
-      countBadge.textContent = cart.length;
-
-      if (cart.length === 0) {
-        list.innerHTML = `<p class="text-gray-400">Your cart is empty.</p>`;
-        totalEl.textContent = 'KES 0';
-        return;
-      }
-
-      let total = 0;
-      list.innerHTML = cart.map((item, idx) => {
-        total += item.price;
-        return `
-          <div class="flex justify-between items-center p-3 bg-brand-gray rounded-xl border border-gray-800">
-            <div>
-              <p class="font-bold text-brand-white">${item.title}</p>
-              <p class="text-brand-frost font-bold">KES ${item.price.toLocaleString()}</p>
-            </div>
-            <button onclick="removeFromCart(${idx})" class="text-gray-500 hover:text-white cursor-pointer">✕</button>
-          </div>
-        `;
-      }).join('');
-
-      totalEl.textContent = 'KES ' + total.toLocaleString();
-    }
-
-    function removeFromCart(index) {
-      cart.splice(index, 1);
-      updateCartUI();
-    }
-
-    function handleCheckout() {
-      if (cart.length === 0) {
-        alert('Your cart is empty.');
-        return;
-      }
-
-      if (currentUser) {
-        alert('Redirecting to secure digital asset checkout...');
-      } else {
-        toggleCartDrawer();
-        openAuthDrawer('signup');
-      }
-    }
-
-    // Auth Side Drawer Controls
+    // Side Auth Drawer Controls
     function openAuthDrawer(tab) {
       const overlay = document.getElementById('authDrawerOverlay');
       const drawer = document.getElementById('authDrawer');
@@ -632,7 +370,7 @@
       }
     }
 
-    // Supabase Auth Handlers
+    // Handle User Sign In via Supabase
     async function handleLogin(event) {
       event.preventDefault();
       
@@ -654,13 +392,14 @@
         statusText.classList.add('text-red-400');
         submitBtn.disabled = false;
       } else {
-        statusText.textContent = 'Success! Redirecting...';
+        statusText.textContent = 'Success! Redirecting to library...';
         setTimeout(() => {
-          closeAuthDrawer();
+          window.location.href = 'library.html';
         }, 1000);
       }
     }
 
+    // Handle User Sign Up via Supabase
     async function handleSignup(event) {
       event.preventDefault();
 
@@ -689,6 +428,151 @@
       } else {
         statusText.textContent = 'Account created! Please check your email to confirm.';
       }
+    }
+
+    // Platform Catalog
+    const CATALOG = [
+      {
+        id: 'c1',
+        type: 'course',
+        title: 'Cinematic Storytelling & Dark Aesthetics',
+        category: 'Film & Video',
+        description: 'Learn practical high-contrast lighting setups, documentary shot choices, and low-light visual mood creation.',
+        details: '5 Modules • 1h 20m',
+        price: 'KES 2,500',
+        actionUrl: 'explore.html'
+      },
+      {
+        id: 'c2',
+        type: 'course',
+        title: 'DaVinci Resolve Dark Moody Course',
+        category: 'Color Grading',
+        description: 'Master the Color page, Power Windows, Delta Keyer node workflows, and custom look creation for narrative projects.',
+        details: '8 Modules • 2h 45m',
+        price: 'KES 3,000',
+        actionUrl: 'explore.html'
+      },
+      {
+        id: 'c3',
+        type: 'course',
+        title: 'The Business of Creativity & Grant Writing',
+        category: 'Business of Art',
+        description: 'How to pitch visual proposals, structure client budgets, submit grant applications, and commercialize your art.',
+        details: '6 Modules • 1h 50m',
+        price: 'KES 2,000',
+        actionUrl: 'explore.html'
+      },
+      {
+        id: 'a1',
+        type: 'asset',
+        title: 'Dark Moody PowerGrade Collection',
+        category: 'DaVinci PowerGrade',
+        description: 'Non-destructive node tree presets, shadow retention keys, and low-light skin tone balancing built for Log footage.',
+        details: 'ZIP • 18 MB (.drx)',
+        price: 'KES 3,500',
+        actionUrl: 'shop.html'
+      },
+      {
+        id: 'a2',
+        type: 'asset',
+        title: 'Creative Proposal & Pitch Deck Suite',
+        category: 'Template Suite',
+        description: '16:9 minimalist client presentation decks, sponsor outreach layouts, and video production proposal templates.',
+        details: 'PDF / Figma / Canva',
+        price: 'KES 2,400',
+        actionUrl: 'shop.html'
+      },
+      {
+        id: 'a3',
+        type: 'asset',
+        title: '16mm Film Grain & Light Leak Pack',
+        category: '4K Video FX',
+        description: 'Authentic scanned film grain, flash frames, and light leak textures. Drag and drop onto premiere or resolve timelines.',
+        details: '4K ProRes 422 • 3.2 GB',
+        price: 'KES 2,900',
+        actionUrl: 'shop.html'
+      }
+    ];
+
+    let currentResults = [];
+    let activeFilter = 'all';
+
+    function executeSearch(query) {
+      const q = query.toLowerCase().trim();
+      const summaryText = document.getElementById('searchSummaryText');
+
+      if (!q) {
+        currentResults = CATALOG;
+        summaryText.textContent = `Displaying all ${CATALOG.length} platform offerings.`;
+      } else {
+        currentResults = CATALOG.filter(item => 
+          item.title.toLowerCase().includes(q) ||
+          item.description.toLowerCase().includes(q) ||
+          item.category.toLowerCase().includes(q)
+        );
+        summaryText.textContent = `Found ${currentResults.length} result(s) for "${query}".`;
+      }
+
+      renderResults();
+    }
+
+    function renderResults() {
+      const grid = document.getElementById('searchResultsGrid');
+      const filtered = currentResults.filter(item => activeFilter === 'all' || item.type === activeFilter);
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-16 border border-dashed border-gray-800 rounded-3xl bg-brand-gray/40">
+            <p class="text-gray-400 font-sans text-sm">No results match your criteria.</p>
+            <a href="explore.html" class="inline-block mt-4 text-xs font-bold text-brand-frost hover:underline font-sans">Browse All Courses →</a>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(item => `
+        <div class="bg-brand-gray border border-gray-800 rounded-2xl p-6 flex flex-col justify-between hover:border-brand-frost/60 transition-all group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="bg-brand-frost/20 text-brand-frost text-[10px] font-bold px-2.5 py-1 rounded border border-brand-frost/30 uppercase tracking-widest font-sans">
+                ${item.category}
+              </span>
+              <span class="text-xs font-mono text-gray-400 uppercase">${item.type}</span>
+            </div>
+            <h3 class="text-xl font-heading tracking-wide text-brand-white group-hover:text-brand-frost transition-colors">
+              ${item.title}
+            </h3>
+            <p class="text-xs text-gray-400 leading-relaxed font-sans">
+              ${item.description}
+            </p>
+          </div>
+
+          <div class="pt-6 border-t border-gray-800 mt-6 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] text-gray-400 font-sans">${item.details}</p>
+              <p class="text-sm font-heading text-brand-frost mt-0.5">${item.price}</p>
+            </div>
+            <a href="${item.actionUrl}" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-4 py-2 rounded-xl transition-all font-sans">
+              View Item
+            </a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterResultType(type) {
+      activeFilter = type;
+      
+      ['all', 'course', 'asset'].forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if (t === type) {
+          btn.className = "bg-brand-frost text-brand-forest font-bold px-4 py-2 rounded-full cursor-pointer";
+        } else {
+          btn.className = "bg-brand-gray text-gray-300 hover:text-brand-white px-4 py-2 rounded-full border border-gray-800 cursor-pointer";
+        }
+      });
+
+      renderResults();
     }
 
     // Dynamic Footer Newsletter Subscription (Connected to Supabase)

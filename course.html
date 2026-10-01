@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Course Player | Called to Create</title>
+  <title id="pageTitle">Course Player | Called to Create</title>
   <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Google Fonts: Bebas Neue (Heading) & Decalotype (Sans/Body) -->
@@ -37,12 +37,7 @@
   <!-- Subtle Dark Overlay -->
   <div class="fixed inset-0 bg-brand-forest/95 pointer-events-none -z-10"></div>
 
-  <!-- Promo Top Banner -->
-  <div class="bg-brand-frost text-brand-forest text-center py-2 px-4 text-xs sm:text-sm font-semibold tracking-wide">
-    New members: Get 7 days of Premium platform access for free!
-  </div>
-
-  <!-- Header / Navigation (Matches Homepage Layout & Logo Size) -->
+  <!-- Header / Navigation -->
   <header class="flex flex-col md:flex-row justify-between items-center px-6 md:px-10 py-4 border-b border-brand-gray/60 gap-4 sticky top-0 bg-brand-forest/95 backdrop-blur-md z-40">
     <div class="flex items-center space-x-6">
       <a href="index.html" class="inline-block transition-transform hover:scale-105">
@@ -57,132 +52,58 @@
         </div>
       </a>
       <span class="text-gray-600 hidden lg:inline">|</span>
-      <span class="text-xs text-gray-300 font-sans hidden lg:inline truncate max-w-xs">
-        DaVinci Resolve Dark Moody Masterclass
+      <span id="navCourseTitle" class="text-xs text-brand-frost font-sans font-bold hidden lg:inline uppercase tracking-wider">
+        Loading Masterclass...
       </span>
     </div>
 
     <nav class="flex items-center space-x-6 text-sm font-medium">
-      <a href="index.html" class="text-gray-300 hover:text-brand-white transition-colors flex items-center gap-1 text-xs">
+      <a href="explore.html" class="text-gray-300 hover:text-brand-white transition-colors flex items-center gap-1 text-xs">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         Back to Catalog
       </a>
-        <a href="library.html" class="bg-brand-frost text-brand-forest px-6 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs">
+      <a href="library.html" class="bg-brand-frost text-brand-forest px-6 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs">
         My Library
-        </a>
-      </button>
+      </a>
     </nav>
   </header>
 
   <!-- Main Player Layout Container -->
-  <!-- Main Player Layout Container -->
   <main class="max-w-7xl mx-auto w-full px-6 md:px-10 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow">
     
-    <!-- Top Row - Left Column: Video Player Frame (2 Columns) -->
-    <div class="lg:col-span-2">
+    <!-- Left Column: Video Player Frame (2 Columns) -->
+    <div class="lg:col-span-2 space-y-4">
       <div class="bg-black aspect-video rounded-3xl border border-gray-800 relative overflow-hidden shadow-2xl flex flex-col justify-between group">
-        <!-- Mock Video Display -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex items-center justify-center">
-          <div class="text-center space-y-3 p-6 z-10">
-            <button id="playBtn" class="w-16 h-16 bg-brand-frost text-brand-forest rounded-full flex items-center justify-center mx-auto shadow-lg hover:scale-110 transition-transform">
-              <svg class="w-8 h-8 fill-current ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            </button>
-            <span class="text-xs text-brand-frost font-sans uppercase tracking-widest block">
-              Lesson 03 • Module 1
-            </span>
-            <h1 class="text-2xl md:text-3xl font-heading tracking-wide text-brand-white">
-              DaVinci Resolve Dark Moody Grade Setup
-            </h1>
-          </div>
-        </div>
+        
+        <!-- BunnyStream Video Embed Container -->
+        <iframe 
+          id="videoPlayer" 
+          src="" 
+          class="w-full h-full border-0 absolute inset-0" 
+          loading="lazy"
+          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" 
+          allowfullscreen>
+        </iframe>
 
-        <!-- Video Control Bar Overlay (Mock) -->
-        <div class="relative z-20 p-4 bg-gradient-to-t from-black/90 to-transparent mt-auto flex items-center justify-between text-xs text-gray-300 font-sans">
-          <div class="flex items-center space-x-3">
-            <span class="text-brand-frost font-bold">12:45</span>
-            <span>/</span>
-            <span>20:00</span>
-          </div>
-          <div class="flex items-center space-x-4">
-            <button class="hover:text-brand-frost transition-colors">1.0x Speed</button>
-            <button class="hover:text-brand-frost transition-colors">1080p</button>
-            <button class="hover:text-brand-frost transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-2V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
 
-    <!-- Top Row - Right Column: Interactive Course Curriculum Sidebar (1 Column) -->
+    <!-- Right Column: Interactive Course Curriculum Sidebar (1 Column) -->
     <div class="bg-brand-gray border border-gray-800 p-6 rounded-3xl space-y-4 h-full flex flex-col justify-between">
       <div>
         <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
           <div>
             <h2 class="text-xl font-heading tracking-wide text-brand-white">Course Curriculum</h2>
-            <p class="text-[10px] text-gray-400 font-sans">8 Lessons • 2h 45m Total Duration</p>
+            <p id="curriculumMeta" class="text-[10px] text-gray-400 font-sans">0 Lessons • 0h 0m Total Duration</p>
           </div>
-          <span class="text-xs text-brand-frost font-bold bg-brand-frost/10 px-2.5 py-1 rounded-full border border-brand-frost/20 font-sans">
-            37% Complete
+          <span id="coursePriceTag" class="text-xs text-brand-frost font-bold bg-brand-frost/10 px-2.5 py-1 rounded-full border border-brand-frost/20 font-sans">
+            KES 0
           </span>
         </div>
 
-        <!-- Lesson List -->
-        <div class="space-y-2 font-sans">
-          <!-- Lesson 1 (Completed) -->
-          <button class="w-full text-left p-3 rounded-2xl border border-gray-800 bg-black/30 text-xs flex justify-between items-center text-gray-400 hover:border-gray-700 transition-all">
-            <div class="flex items-center space-x-3">
-              <span class="text-brand-frost">✓</span>
-              <div>
-                <span class="font-bold block text-gray-300">01. Color Managed Workflow Setup</span>
-                <span class="text-[10px] text-gray-500">10:00 mins</span>
-              </div>
-            </div>
-          </button>
-
-          <!-- Lesson 2 (Completed) -->
-          <button class="w-full text-left p-3 rounded-2xl border border-gray-800 bg-black/30 text-xs flex justify-between items-center text-gray-400 hover:border-gray-700 transition-all">
-            <div class="flex items-center space-x-3">
-              <span class="text-brand-frost">✓</span>
-              <div>
-                <span class="font-bold block text-gray-300">02. Primary Exposure & Contrast</span>
-                <span class="text-[10px] text-gray-500">15:00 mins</span>
-              </div>
-            </div>
-          </button>
-
-          <!-- Lesson 3 (Active) -->
-          <button class="w-full text-left p-3 rounded-2xl border border-brand-frost bg-brand-forest text-xs flex justify-between items-center text-brand-white shadow-lg">
-            <div class="flex items-center space-x-3">
-              <span class="w-2 h-2 rounded-full bg-brand-frost animate-pulse"></span>
-              <div>
-                <span class="font-bold block text-brand-frost">03. DaVinci Resolve Dark Moody Grade</span>
-                <span class="text-[10px] text-gray-300">20:00 mins • Now Playing</span>
-              </div>
-            </div>
-          </button>
-
-          <!-- Lesson 4 -->
-          <button class="w-full text-left p-3 rounded-2xl border border-gray-800 bg-black/30 text-xs flex justify-between items-center text-gray-400 hover:border-gray-700 transition-all">
-            <div class="flex items-center space-x-3">
-              <span class="text-gray-600">04</span>
-              <div>
-                <span class="font-bold block text-gray-300">Power Windows & Delta Keyer Isolation</span>
-                <span class="text-[10px] text-gray-500">18:00 mins</span>
-              </div>
-            </div>
-          </button>
-
-          <!-- Lesson 5 -->
-          <button class="w-full text-left p-3 rounded-2xl border border-gray-800 bg-black/30 text-xs flex justify-between items-center text-gray-400 hover:border-gray-700 transition-all">
-            <div class="flex items-center space-x-3">
-              <span class="text-gray-600">05</span>
-              <div>
-                <span class="font-bold block text-gray-300">Skin Tone Balance in Low Light</span>
-                <span class="text-[10px] text-gray-500">22:00 mins</span>
-              </div>
-            </div>
-          </button>
+        <!-- Dynamic Lesson List Container -->
+        <div id="curriculumList" class="space-y-2 font-sans max-h-[400px] overflow-y-auto pr-1">
+          <!-- Lessons render dynamically from catalog.js -->
         </div>
       </div>
     </div>
@@ -196,7 +117,7 @@
           Overview & Notes
         </button>
         <button id="tabAssetsBtn" onclick="switchTab('assets')" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-brand-white transition-colors">
-          Downloads & LUTs (2)
+          Downloads & Assets (<span id="assetCount">0</span>)
         </button>
         <button id="tabDiscussionBtn" onclick="switchTab('discussion')" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-brand-white transition-colors">
           Discussion
@@ -205,43 +126,32 @@
 
       <!-- Tab 1: Overview Content -->
       <div id="tabOverview" class="space-y-4 text-xs md:text-sm text-gray-300 leading-relaxed font-sans">
-        <h3 class="text-xl font-heading tracking-wide text-brand-white">About This Lesson</h3>
-        <p>
-          In this module, we break down node trees in DaVinci Resolve focused specifically on high-contrast, moody documentary visual aesthetics. We cover initial primary corrections, shadow density management, exposure balancing, and Delta Keyer power windows for target isolation.
+        <div class="flex items-center justify-between">
+          <h1 id="courseTitle" class="text-2xl md:text-3xl font-heading tracking-wide text-brand-white">
+            Loading Course Title...
+          </h1>
+          <span id="courseCategory" class="text-xs font-bold text-brand-frost bg-brand-frost/10 px-3 py-1 rounded-full font-sans border border-brand-frost/20">
+            Category
+          </span>
+        </div>
+
+        <p id="courseDescription">
+          Loading course description...
         </p>
+
         <div class="p-4 bg-brand-forest/60 border border-brand-frost/30 rounded-2xl space-y-2">
-          <span class="text-brand-frost font-bold uppercase text-[10px] tracking-wider block">Key Concepts Covered:</span>
-          <ul class="list-disc list-inside space-y-1 text-xs text-gray-300">
-            <li>Setting up node trees for non-destructive color workflows</li>
-            <li>Preserving shadow detail while crushing background blacks</li>
-            <li>Utilizing Power Windows for subtle subject emphasis</li>
-          </ul>
+          <span class="text-brand-frost font-bold uppercase text-[10px] tracking-wider block">Instructor & Access:</span>
+          <p id="courseInstructor" class="text-xs text-gray-300">
+            Led by Kevin Odongo • Full Lifetime Access Included
+          </p>
         </div>
       </div>
 
-      <!-- Tab 2: Downloads & LUTs Content -->
+      <!-- Tab 2: Downloads & Assets Content -->
       <div id="tabAssets" class="space-y-3 font-sans hidden">
         <h3 class="text-xl font-heading tracking-wide text-brand-white mb-2">Project Downloads</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-black/40 border border-gray-700 rounded-2xl flex items-center justify-between">
-            <div>
-              <span class="font-bold text-xs block text-brand-white">Forest_Night_Moody_LUT.cube</span>
-              <span class="text-[10px] text-gray-400">3D LUT File • 2.4 MB</span>
-            </div>
-            <button class="bg-brand-frost text-brand-forest px-4 py-2 rounded-xl text-xs font-bold hover:bg-opacity-90 transition-all">
-              Download
-            </button>
-          </div>
-
-          <div class="p-4 bg-black/40 border border-gray-700 rounded-2xl flex items-center justify-between">
-            <div>
-              <span class="font-bold text-xs block text-brand-white">DaVinci_Node_Tree_Template.drp</span>
-              <span class="text-[10px] text-gray-400">DaVinci Resolve Project Preset • 1.1 MB</span>
-            </div>
-            <button class="bg-brand-frost text-brand-frost px-4 py-2 rounded-xl text-xs font-bold hover:bg-opacity-90 transition-all">
-              Download
-            </button>
-          </div>
+        <div id="assetList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Downloadable items render dynamically from catalog.js -->
         </div>
       </div>
 
@@ -265,20 +175,88 @@
   </main>
 
   <!-- Global Footer -->
-  <footer class="border-t border-gray-800 py-10 px-6 md:px-10 bg-black text-xs text-gray-400 font-sans mt-auto">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-      <div class="text-xl font-heading text-brand-white tracking-widest">CALLED TO CREATE</div>
-      <p>© 2026 Called to Create Ltd. All rights reserved.</p>
-      <div class="flex space-x-6 text-gray-400">
-        <a href="#" class="hover:text-brand-white">Terms</a>
-        <a href="#" class="hover:text-brand-white">Privacy</a>
-        <a href="#" class="hover:text-brand-white">Support</a>
+  <footer class="border-t border-gray-800 bg-black text-xs text-gray-400 font-sans mt-auto py-16 px-6 md:px-10">
+    <div class="max-w-7xl mx-auto space-y-12">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div class="space-y-4 md:col-span-1">
+          <a href="index.html" class="inline-block">
+            <img src="C2C Logo (White).png" alt="Called to Create Logo" class="h-14 w-auto object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+            <div class="text-2xl font-heading tracking-widest text-brand-white hidden">CALLED TO CREATE</div>
+          </a>
+          <p class="text-gray-400 text-xs leading-relaxed">
+            An independent platform dedicated to equipping filmmakers, photographers, and visual artists with specialized education and practical digital tools.
+          </p>
+        </div>
+
+        <div class="space-y-3">
+          <h4 class="text-brand-white font-heading text-lg tracking-wider">Navigation</h4>
+          <ul class="space-y-2">
+            <li><a href="index.html" class="hover:text-brand-white transition-colors">Home</a></li>
+            <li><a href="explore.html" class="hover:text-brand-white transition-colors">Explore Courses</a></li>
+            <li><a href="how-it-works.html" class="hover:text-brand-white transition-colors">How It Works</a></li>
+            <li><a href="shop.html" class="hover:text-brand-white transition-colors">Digital Assets Shop</a></li>
+          </ul>
+        </div>
+
+        <div class="space-y-3">
+          <h4 class="text-brand-white font-heading text-lg tracking-wider">Connect</h4>
+          <ul class="space-y-2">
+            <li>
+              <a href="https://www.instagram.com/calledtocreate_c2c/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-gray-400 hover:text-brand-white transition-colors">
+                <svg class="w-4 h-4 text-brand-frost" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                <span>Instagram</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://www.linkedin.com/company/called-to-create-c2c/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-gray-400 hover:text-brand-white transition-colors">
+                <svg class="w-4 h-4 text-brand-frost" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                <span>LinkedIn</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="space-y-3">
+          <h4 class="text-brand-white font-heading text-lg tracking-wider">Stay Updated</h4>
+          <p class="text-gray-400 text-xs">Receive platform updates, asset drops, and creative advice directly in your inbox.</p>
+          <form id="footerNewsletterForm" onsubmit="handleFooterSubscribe(event)" class="flex flex-col gap-2">
+            <input 
+              type="email" 
+              id="footerEmailInput"
+              required 
+              placeholder="Your email address" 
+              class="w-full bg-brand-gray border border-gray-800 rounded-xl px-3 py-2 text-xs text-brand-white focus:outline-none focus:border-brand-frost font-sans"
+            />
+            <button 
+              type="submit" 
+              id="footerSubmitBtn"
+              class="bg-brand-frost text-brand-forest font-bold py-2 rounded-xl text-xs hover:bg-opacity-90 transition-all font-sans cursor-pointer"
+            >
+              Join Our Community
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-800/80 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-[11px]">
+        <p>© 2026 Called to Create Ltd. All rights reserved.</p>
+        <div class="flex space-x-6">
+          <a href="terms.html" class="hover:text-brand-white">Terms of Service</a>
+          <a href="privacy.html" class="hover:text-brand-white">Privacy Policy</a>
+          <a href="support.html" class="hover:text-brand-white">Support</a>
+        </div>
       </div>
     </div>
   </footer>
 
-  <!-- Tab Switching Logic Script -->
+  <!-- Master Data Source -->
+  <script src="catalog.js"></script>
+
+  <!-- Dynamic Controller & Interactive Tab/Lesson Script -->
   <script>
+    let currentCourse = null;
+
+    // Tab Switcher Function
     function switchTab(tabName) {
       document.getElementById('tabOverview').classList.add('hidden');
       document.getElementById('tabAssets').classList.add('hidden');
@@ -299,6 +277,135 @@
         document.getElementById('tabDiscussionBtn').className = "pb-3 border-b-2 border-brand-frost text-brand-frost transition-colors";
       }
     }
+
+    // Function to load selected lesson into iframe
+    function playLesson(index, videoUrl) {
+      if (videoUrl) {
+        document.getElementById('videoPlayer').src = videoUrl;
+      }
+      
+      // Update Active State on Lesson Buttons
+      const buttons = document.querySelectorAll('#curriculumList button');
+      buttons.forEach((btn, idx) => {
+        if (idx === index) {
+          btn.className = "w-full text-left p-3 rounded-2xl border border-brand-frost bg-brand-forest text-brand-white text-xs flex justify-between items-center transition-all cursor-pointer";
+        } else {
+          btn.className = "w-full text-left p-3 rounded-2xl border border-gray-800 bg-black/30 text-gray-400 hover:border-gray-700 text-xs flex justify-between items-center transition-all cursor-pointer";
+        }
+      });
+    }
+
+    // Dynamic Data Injection Script
+    document.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const courseId = urlParams.get('id') || 'davinci-resolve-dark-moody';
+
+      if (typeof CATALOG === 'undefined') {
+        console.error("catalog.js is missing or not loaded.");
+        return;
+      }
+
+      currentCourse = CATALOG.find(item => item.id === courseId) || CATALOG[0];
+
+      if (currentCourse) {
+        document.getElementById('pageTitle').textContent = `${currentCourse.title} | Called to Create`;
+        document.getElementById('navCourseTitle').textContent = currentCourse.title;
+        document.getElementById('courseTitle').textContent = currentCourse.title;
+        document.getElementById('courseDescription').textContent = currentCourse.description;
+        document.getElementById('courseCategory').textContent = currentCourse.category;
+        document.getElementById('courseInstructor').textContent = `Led by ${currentCourse.instructor} • Full Lifetime Access Included`;
+        document.getElementById('coursePriceTag').textContent = `KES ${currentCourse.priceKES.toLocaleString()} / $${currentCourse.priceUSD}`;
+        document.getElementById('curriculumMeta').textContent = `${currentCourse.curriculum.length} Lessons • ${currentCourse.duration} Total Duration`;
+        document.getElementById('videoPlayer').src = currentCourse.previewVideoUrl;
+
+        // Render Curriculum List
+        const curriculumContainer = document.getElementById('curriculumList');
+        curriculumContainer.innerHTML = currentCourse.curriculum.map((lesson, idx) => `
+          <button 
+            onclick="playLesson(${idx}, '${lesson.videoUrl || currentCourse.previewVideoUrl}')" 
+            class="w-full text-left p-3 rounded-2xl border ${idx === 0 ? 'border-brand-frost bg-brand-forest text-brand-white' : 'border-gray-800 bg-black/30 text-gray-400 hover:border-gray-700'} text-xs flex justify-between items-center transition-all cursor-pointer"
+          >
+            <div class="flex items-center space-x-3">
+              <span class="${idx === 0 ? 'text-brand-frost font-bold' : 'text-gray-500'}">${lesson.id < 10 ? '0' + lesson.id : lesson.id}</span>
+              <div>
+                <span class="font-bold block ${idx === 0 ? 'text-brand-frost' : 'text-gray-300'}">${lesson.title}</span>
+                <span class="text-[10px] text-gray-500">${lesson.duration}</span>
+              </div>
+            </div>
+          </button>
+        `).join('');
+
+        // Render Asset Downloads
+        const assetContainer = document.getElementById('assetList');
+        document.getElementById('assetCount').textContent = currentCourse.assets ? currentCourse.assets.length : 0;
+
+        if (currentCourse.assets && currentCourse.assets.length > 0) {
+          assetContainer.innerHTML = currentCourse.assets.map(asset => `
+            <div class="p-4 bg-black/40 border border-gray-700 rounded-2xl flex items-center justify-between">
+              <div>
+                <span class="font-bold text-xs block text-brand-white">${asset.name}</span>
+                <span class="text-[10px] text-gray-400">${asset.size}</span>
+              </div>
+              <a href="${asset.link}" class="bg-brand-frost text-brand-forest px-4 py-2 rounded-xl text-xs font-bold hover:bg-opacity-90 transition-all">
+                Download
+              </a>
+            </div>
+          `).join('');
+        } else {
+          assetContainer.innerHTML = `<p class="text-xs text-gray-500">No external downloads required for this class.</p>`;
+        }
+      }
+    });
+
+    // Dynamic Footer Newsletter Subscription (Connected to Supabase)
+async function handleFooterSubscribe(event) {
+  event.preventDefault();
+  const btn = document.getElementById('footerSubmitBtn');
+  const input = document.getElementById('footerEmailInput');
+  const email = input.value.trim();
+
+  if (!email) return;
+
+  // UI state: Loading
+  btn.disabled = true;
+  const originalBtnText = btn.textContent;
+  btn.textContent = 'Submitting...';
+
+  try {
+    // Insert email into Supabase newsletter_subscribers table
+    const { data, error } = await window.supabaseClient
+      .from('newsletter_subscribers')
+      .insert([{ email }]);
+
+    if (error) {
+      // 23505 is PostgreSQL error code for unique constraint violation (duplicate email)
+      if (error.code === '23505') {
+        btn.textContent = 'Already Subscribed!';
+        btn.classList.remove('bg-brand-frost', 'text-brand-forest');
+        btn.classList.add('bg-emerald-600', 'text-white', 'cursor-default');
+        input.value = '';
+        input.placeholder = 'You are on the list!';
+        input.disabled = true;
+      } else {
+        console.error('Newsletter error:', error);
+        btn.textContent = 'Try Again';
+        btn.disabled = false;
+      }
+    } else {
+      // Success state
+      btn.textContent = 'Subscribed!';
+      btn.classList.remove('bg-brand-frost', 'text-brand-forest', 'hover:bg-opacity-90');
+      btn.classList.add('bg-emerald-600', 'text-white', 'cursor-default');
+      input.value = '';
+      input.placeholder = 'Thank you for joining us!';
+      input.disabled = true;
+    }
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    btn.textContent = 'Try Again';
+    btn.disabled = false;
+  }
+}
   </script>
 
 </body>
