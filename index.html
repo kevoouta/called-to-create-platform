@@ -128,10 +128,10 @@
         <h2 class="text-3xl font-heading tracking-wide text-brand-white">Featured Courses</h2>
         <p class="text-xs text-gray-400 font-sans">Step-by-step courses designed for production excellence</p>
       </div>
-      <span class="text-xs text-brand-frost font-bold font-sans">3 Courses</span>
+      <span id="featuredCourseCount" class="text-xs text-brand-frost font-bold font-sans">Loading courses...</span>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div id="featuredCourseGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
       
       <!-- Course Card 1 -->
       <div class="bg-brand-gray border border-gray-800 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-brand-frost/60 transition-all group">
@@ -195,7 +195,7 @@
 
         <div class="p-6 pt-0 border-t border-gray-800 mt-4 flex items-center justify-between">
           <span class="text-lg font-heading text-brand-frost">KES 3,000</span>
-          <button onclick="handleEnrollClick('davinci-moody')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-4 py-2 rounded-xl transition-all font-sans cursor-pointer">
+          <button onclick="handleEnrollClick('davinci-resolve-dark-moody')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-4 py-2 rounded-xl transition-all font-sans cursor-pointer">
             Enroll Now
           </button>
         </div>
@@ -419,6 +419,7 @@
 
   <!-- Supabase CDN SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="course-cards.js" defer></script>
 
   <!-- Interactive Logic & Supabase Integration -->
   <script>
@@ -464,15 +465,9 @@
       }
     }
 
-    // Handle course card action based on login state
+    // Open the dynamic course page for the selected course
     function handleEnrollClick(courseId) {
-      if (currentUser) {
-        // Logged in: proceed to library or checkout
-        window.location.href = `library.html?enroll=${courseId}`;
-      } else {
-        // Logged out: open registration drawer
-        openAuthDrawer('signup');
-      }
+      window.location.href = `course.html?id=${encodeURIComponent(courseId)}`;
     }
 
     // Global Sign Out Function

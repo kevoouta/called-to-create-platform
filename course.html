@@ -62,9 +62,7 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         Back to Catalog
       </a>
-      <a href="library.html" class="bg-brand-frost text-brand-forest px-6 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs">
-        My Library
-      </a>
+      <div id="courseNavAuthButtons" class="flex items-center gap-3"></div>
     </nav>
   </header>
 
@@ -104,6 +102,13 @@
         <!-- Dynamic Lesson List Container -->
         <div id="curriculumList" class="space-y-2 font-sans max-h-[400px] overflow-y-auto pr-1">
           <!-- Lessons render dynamically from catalog.js -->
+        </div>
+
+        <div class="mt-5 border-t border-gray-800 pt-5 space-y-3">
+          <button onclick="handleCoursePurchase()" class="w-full bg-brand-frost text-brand-forest font-bold px-5 py-3 rounded-xl text-xs hover:bg-opacity-90 transition-all font-sans cursor-pointer">
+            Purchase Course
+          </button>
+          <p class="text-[10px] text-gray-500 text-center font-sans">Lifetime access included</p>
         </div>
       </div>
     </div>
@@ -173,6 +178,73 @@
     </div>
 
   </main>
+
+  <!-- Course Cart Drawer -->
+  <div id="courseCartDrawer" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex justify-end">
+    <div class="bg-brand-forest border-l border-gray-800 w-full max-w-md h-full p-8 flex flex-col justify-between">
+      <div class="space-y-6">
+        <div class="flex justify-between items-center border-b border-gray-800 pb-4">
+          <h2 class="text-2xl font-heading tracking-wide text-brand-white">Course Cart</h2>
+          <button onclick="closeCourseCart()" aria-label="Close cart" class="text-gray-400 hover:text-brand-white text-lg font-bold cursor-pointer">✕</button>
+        </div>
+        <div id="courseCartItems" class="space-y-4 text-xs font-sans"></div>
+      </div>
+      <div class="border-t border-gray-800 pt-6 space-y-4">
+        <div class="flex justify-between text-sm font-sans">
+          <span class="text-gray-400">Total</span>
+          <span id="courseCartTotal" class="text-brand-frost font-bold">KES 0</span>
+        </div>
+        <button onclick="handleCourseCheckout()" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
+          Continue to Checkout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Course Authentication Drawer -->
+  <div id="courseAuthOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden" onclick="closeCourseAuthDrawer()"></div>
+  <div id="courseAuthDrawer" class="fixed top-0 right-0 w-full max-w-md h-full bg-brand-forest border-l border-gray-800 z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between p-8">
+    <div>
+      <div class="flex justify-between items-center border-b border-gray-800 pb-4 mb-8">
+        <div class="flex space-x-6">
+          <button id="courseLoginTab" onclick="switchCourseAuthTab('login')" class="text-xl font-heading text-gray-400 hover:text-brand-white pb-1 cursor-pointer">Log In</button>
+          <button id="courseSignupTab" onclick="switchCourseAuthTab('signup')" class="text-xl font-heading text-brand-frost border-b-2 border-brand-frost pb-1 cursor-pointer">Create Account</button>
+        </div>
+        <button onclick="closeCourseAuthDrawer()" aria-label="Close sign in" class="text-gray-400 hover:text-brand-white text-lg font-bold cursor-pointer">✕</button>
+      </div>
+
+      <form id="courseLoginForm" class="space-y-5 hidden" onsubmit="handleCourseLogin(event)">
+        <div>
+          <label for="courseLoginEmail" class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Email Address</label>
+          <input id="courseLoginEmail" type="email" required autocomplete="email" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost" />
+        </div>
+        <div>
+          <label for="courseLoginPassword" class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Password</label>
+          <input id="courseLoginPassword" type="password" required autocomplete="current-password" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost" />
+        </div>
+        <p id="courseLoginStatus" class="text-xs hidden" role="status"></p>
+        <button type="submit" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">Log In & Continue</button>
+      </form>
+
+      <form id="courseSignupForm" class="space-y-5" onsubmit="handleCourseSignup(event)">
+        <div>
+          <label for="courseSignupName" class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Full Name</label>
+          <input id="courseSignupName" type="text" required autocomplete="name" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost" />
+        </div>
+        <div>
+          <label for="courseSignupEmail" class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Email Address</label>
+          <input id="courseSignupEmail" type="email" required autocomplete="email" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost" />
+        </div>
+        <div>
+          <label for="courseSignupPassword" class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Password</label>
+          <input id="courseSignupPassword" type="password" required autocomplete="new-password" class="w-full bg-brand-gray border border-gray-800 rounded-xl px-4 py-3 text-xs text-brand-white focus:outline-none focus:border-brand-frost" />
+        </div>
+        <p id="courseSignupStatus" class="text-xs hidden" role="status"></p>
+        <button type="submit" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">Create Account & Continue</button>
+      </form>
+    </div>
+    <p class="border-t border-gray-800 pt-6 text-center text-xs text-gray-400">Your course selection will be ready in the cart after sign in.</p>
+  </div>
 
   <!-- Global Footer -->
   <footer class="border-t border-gray-800 bg-black text-xs text-gray-400 font-sans mt-auto py-16 px-6 md:px-10">
@@ -249,12 +321,182 @@
     </div>
   </footer>
 
-  <!-- Master Data Source -->
-  <script src="catalog.js"></script>
+  <!-- Supabase Data Source -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Dynamic Controller & Interactive Tab/Lesson Script -->
   <script>
     let currentCourse = null;
+    let currentUser = null;
+    let isCourseInCart = false;
+
+    window.supabaseClient = window.supabase.createClient(
+      'https://ecbftpfbbfvcxreszsfo.supabase.co',
+      'sb_publishable_AQZBPX4R8Q4IxQnKO2euYw_IWwlxlb9'
+    );
+
+    function updateCourseNavForAuth(user) {
+      const navContainer = document.getElementById('courseNavAuthButtons');
+      if (!navContainer) return;
+
+      if (user) {
+        navContainer.innerHTML = `
+          <a href="library.html" class="bg-brand-frost text-brand-forest px-6 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all text-xs">My Library</a>
+        `;
+      } else {
+        navContainer.innerHTML = `
+          <button onclick="openCourseAuthDrawer('login')" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2 cursor-pointer">Log In</button>
+          <button onclick="openCourseAuthDrawer('signup')" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all text-xs font-sans cursor-pointer">Sign Up</button>
+        `;
+      }
+    }
+
+    function handleCoursePurchase() {
+      if (!currentCourse) return;
+
+      if (!currentUser) {
+        openCourseAuthDrawer('signup');
+        return;
+      }
+
+      isCourseInCart = true;
+      openCourseCart();
+    }
+
+    function openCourseCart() {
+      if (!currentCourse) return;
+
+      const courseCartItems = document.getElementById('courseCartItems');
+      const courseCartTotal = document.getElementById('courseCartTotal');
+
+      if (isCourseInCart) {
+        courseCartItems.innerHTML = `
+          <div class="flex justify-between items-start gap-4 p-4 bg-brand-gray rounded-xl border border-gray-800">
+            <div>
+              <p class="font-bold text-brand-white">${escapeCourseHtml(currentCourse.title)}</p>
+              <p class="text-brand-frost font-bold mt-2">KES ${currentCourse.priceKES.toLocaleString()}</p>
+            </div>
+            <button onclick="removeCourseFromCart()" aria-label="Remove course from cart" class="text-gray-400 hover:text-brand-white cursor-pointer">Remove</button>
+          </div>
+        `;
+        courseCartTotal.textContent = `KES ${currentCourse.priceKES.toLocaleString()}`;
+      } else {
+        courseCartItems.innerHTML = '<p class="text-gray-400">Your cart is empty.</p>';
+        courseCartTotal.textContent = 'KES 0';
+      }
+
+      document.getElementById('courseCartDrawer').classList.remove('hidden');
+    }
+
+    function closeCourseCart() {
+      document.getElementById('courseCartDrawer').classList.add('hidden');
+    }
+
+    function removeCourseFromCart() {
+      isCourseInCart = false;
+      openCourseCart();
+    }
+
+    function handleCourseCheckout() {
+      if (!currentUser) {
+        closeCourseCart();
+        openCourseAuthDrawer('login');
+        return;
+      }
+
+      alert('Course checkout is not connected yet.');
+    }
+
+    function openCourseAuthDrawer(tab) {
+      switchCourseAuthTab(tab);
+      document.getElementById('courseAuthOverlay').classList.remove('hidden');
+      setTimeout(() => {
+        document.getElementById('courseAuthDrawer').classList.remove('translate-x-full');
+      }, 10);
+    }
+
+    function closeCourseAuthDrawer() {
+      document.getElementById('courseAuthDrawer').classList.add('translate-x-full');
+      setTimeout(() => {
+        document.getElementById('courseAuthOverlay').classList.add('hidden');
+      }, 300);
+    }
+
+    function switchCourseAuthTab(tab) {
+      const loginForm = document.getElementById('courseLoginForm');
+      const signupForm = document.getElementById('courseSignupForm');
+      const loginTab = document.getElementById('courseLoginTab');
+      const signupTab = document.getElementById('courseSignupTab');
+      const activeTabClass = 'text-xl font-heading text-brand-frost border-b-2 border-brand-frost pb-1 cursor-pointer';
+      const inactiveTabClass = 'text-xl font-heading text-gray-400 hover:text-brand-white pb-1 cursor-pointer';
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+        loginTab.className = activeTabClass;
+        signupTab.className = inactiveTabClass;
+      } else {
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+        loginTab.className = inactiveTabClass;
+        signupTab.className = activeTabClass;
+      }
+    }
+
+    function showCourseAuthStatus(elementId, message, isError = false) {
+      const status = document.getElementById(elementId);
+      status.textContent = message;
+      status.classList.remove('hidden', 'text-red-400', 'text-brand-frost');
+      status.classList.add(isError ? 'text-red-400' : 'text-brand-frost');
+    }
+
+    async function handleCourseLogin(event) {
+      event.preventDefault();
+      const email = document.getElementById('courseLoginEmail').value.trim();
+      const password = document.getElementById('courseLoginPassword').value;
+      showCourseAuthStatus('courseLoginStatus', 'Signing in...');
+
+      const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        showCourseAuthStatus('courseLoginStatus', error.message, true);
+        return;
+      }
+
+      currentUser = data.user;
+      updateCourseNavForAuth(currentUser);
+      isCourseInCart = true;
+      closeCourseAuthDrawer();
+      openCourseCart();
+    }
+
+    async function handleCourseSignup(event) {
+      event.preventDefault();
+      const fullName = document.getElementById('courseSignupName').value.trim();
+      const email = document.getElementById('courseSignupEmail').value.trim();
+      const password = document.getElementById('courseSignupPassword').value;
+      showCourseAuthStatus('courseSignupStatus', 'Creating account...');
+
+      const { data, error } = await window.supabaseClient.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } }
+      });
+
+      if (error) {
+        showCourseAuthStatus('courseSignupStatus', error.message, true);
+        return;
+      }
+
+      if (data.session && data.user) {
+        currentUser = data.user;
+        updateCourseNavForAuth(currentUser);
+        isCourseInCart = true;
+        closeCourseAuthDrawer();
+        openCourseCart();
+      } else {
+        showCourseAuthStatus('courseSignupStatus', 'Account created. Check your email, then log in to continue.');
+      }
+    }
 
     // Tab Switcher Function
     function switchTab(tabName) {
@@ -295,66 +537,132 @@
       });
     }
 
-    // Dynamic Data Injection Script
-    document.addEventListener("DOMContentLoaded", () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const courseId = urlParams.get('id') || 'davinci-resolve-dark-moody';
+    function escapeCourseHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
+    }
 
-      if (typeof CATALOG === 'undefined') {
-        console.error("catalog.js is missing or not loaded.");
+    function getSafeCourseUrl(value) {
+      if (!value) return '';
+      try {
+        const url = new URL(value, window.location.href);
+        return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+      } catch {
+        return '';
+      }
+    }
+
+    function renderCourseDetails(course) {
+      const priceKES = Number(course.price_kes ?? course.priceKES ?? course.price ?? 0);
+      const priceUSD = Number(course.price_usd ?? course.priceUSD ?? 0);
+      const curriculum = Array.isArray(course.curriculum) ? course.curriculum : [];
+      const assets = Array.isArray(course.assets) ? course.assets : [];
+      const previewUrl = getSafeCourseUrl(course.preview_video_url || course.previewVideoUrl);
+
+      currentCourse = {
+        ...course,
+        priceKES,
+        priceUSD,
+        previewVideoUrl: previewUrl,
+        curriculum,
+        assets
+      };
+
+      document.getElementById('pageTitle').textContent = `${course.title} | Called to Create`;
+      document.getElementById('navCourseTitle').textContent = course.title;
+      document.getElementById('courseTitle').textContent = course.title;
+      document.getElementById('courseDescription').textContent = course.description || '';
+      document.getElementById('courseCategory').textContent = course.category || 'Course';
+      document.getElementById('courseInstructor').textContent = `Led by ${course.instructor || 'Course instructor'} • Full Lifetime Access Included`;
+      document.getElementById('coursePriceTag').textContent = priceUSD
+        ? `KES ${priceKES.toLocaleString()} / $${priceUSD.toLocaleString()}`
+        : `KES ${priceKES.toLocaleString()}`;
+      document.getElementById('curriculumMeta').textContent = `${curriculum.length} Lessons • ${course.duration || 'Duration not set'} Total Duration`;
+      document.getElementById('videoPlayer').src = previewUrl;
+
+      const curriculumContainer = document.getElementById('curriculumList');
+      curriculumContainer.innerHTML = curriculum.length
+        ? curriculum.map((lesson, index) => `
+          <button type="button" data-lesson-index="${index}" class="w-full text-left p-3 rounded-2xl border ${index === 0 ? 'border-brand-frost bg-brand-forest text-brand-white' : 'border-gray-800 bg-black/30 text-gray-400 hover:border-gray-700'} text-xs flex justify-between items-center transition-all cursor-pointer">
+            <div class="flex items-center space-x-3">
+              <span class="${index === 0 ? 'text-brand-frost font-bold' : 'text-gray-500'}">${String(lesson.id ?? index + 1).padStart(2, '0')}</span>
+              <div>
+                <span class="font-bold block ${index === 0 ? 'text-brand-frost' : 'text-gray-300'}">${escapeCourseHtml(lesson.title || `Lesson ${index + 1}`)}</span>
+                <span class="text-[10px] text-gray-500">${escapeCourseHtml(lesson.duration || '')}</span>
+              </div>
+            </div>
+          </button>`).join('')
+        : '<p class="text-xs text-gray-500">Course lessons will be added soon.</p>';
+
+      curriculumContainer.querySelectorAll('[data-lesson-index]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const index = Number(button.dataset.lessonIndex);
+          const lesson = curriculum[index];
+          playLesson(index, getSafeCourseUrl(lesson.video_url || lesson.videoUrl) || previewUrl);
+        });
+      });
+
+      const assetContainer = document.getElementById('assetList');
+      document.getElementById('assetCount').textContent = assets.length;
+      assetContainer.innerHTML = assets.length
+        ? assets.map((asset) => {
+          const assetUrl = getSafeCourseUrl(asset.url || asset.link || asset.download_url);
+          return `
+            <div class="p-4 bg-black/40 border border-gray-700 rounded-2xl flex items-center justify-between gap-4">
+              <div>
+                <span class="font-bold text-xs block text-brand-white">${escapeCourseHtml(asset.name || 'Course resource')}</span>
+                <span class="text-[10px] text-gray-400">${escapeCourseHtml(asset.size || '')}</span>
+              </div>
+              ${assetUrl
+                ? `<a href="${escapeCourseHtml(assetUrl)}" target="_blank" rel="noopener noreferrer" class="bg-brand-frost text-brand-forest px-4 py-2 rounded-xl text-xs font-bold hover:bg-opacity-90 transition-all">Download</a>`
+                : '<span class="text-[10px] text-gray-500">Link unavailable</span>'}
+            </div>`;
+        }).join('')
+        : '<p class="text-xs text-gray-500">No external downloads added yet.</p>';
+    }
+
+    async function loadCourseDetails(courseSlug) {
+      const { data: course, error } = await window.supabaseClient
+        .from('courses')
+        .select('*')
+        .eq('slug', courseSlug)
+        .eq('is_published', true)
+        .maybeSingle();
+
+      if (error || !course) {
+        console.error('Could not load course details:', error || 'Course not found or unpublished.');
+        document.getElementById('courseTitle').textContent = 'Course unavailable';
+        document.getElementById('courseDescription').textContent = 'This course could not be found or is not currently published.';
+        document.getElementById('curriculumList').innerHTML = '';
+        document.getElementById('assetList').innerHTML = '';
         return;
       }
 
-      currentCourse = CATALOG.find(item => item.id === courseId) || CATALOG[0];
+      renderCourseDetails(course);
+    }
 
-      if (currentCourse) {
-        document.getElementById('pageTitle').textContent = `${currentCourse.title} | Called to Create`;
-        document.getElementById('navCourseTitle').textContent = currentCourse.title;
-        document.getElementById('courseTitle').textContent = currentCourse.title;
-        document.getElementById('courseDescription').textContent = currentCourse.description;
-        document.getElementById('courseCategory').textContent = currentCourse.category;
-        document.getElementById('courseInstructor').textContent = `Led by ${currentCourse.instructor} • Full Lifetime Access Included`;
-        document.getElementById('coursePriceTag').textContent = `KES ${currentCourse.priceKES.toLocaleString()} / $${currentCourse.priceUSD}`;
-        document.getElementById('curriculumMeta').textContent = `${currentCourse.curriculum.length} Lessons • ${currentCourse.duration} Total Duration`;
-        document.getElementById('videoPlayer').src = currentCourse.previewVideoUrl;
+    document.addEventListener("DOMContentLoaded", () => {
+      window.supabaseClient.auth.onAuthStateChange((event, session) => {
+        currentUser = session ? session.user : null;
+        updateCourseNavForAuth(currentUser);
+      });
+      window.supabaseClient.auth.getSession().then(({ data }) => {
+        currentUser = data.session ? data.session.user : null;
+        updateCourseNavForAuth(currentUser);
+      });
 
-        // Render Curriculum List
-        const curriculumContainer = document.getElementById('curriculumList');
-        curriculumContainer.innerHTML = currentCourse.curriculum.map((lesson, idx) => `
-          <button 
-            onclick="playLesson(${idx}, '${lesson.videoUrl || currentCourse.previewVideoUrl}')" 
-            class="w-full text-left p-3 rounded-2xl border ${idx === 0 ? 'border-brand-frost bg-brand-forest text-brand-white' : 'border-gray-800 bg-black/30 text-gray-400 hover:border-gray-700'} text-xs flex justify-between items-center transition-all cursor-pointer"
-          >
-            <div class="flex items-center space-x-3">
-              <span class="${idx === 0 ? 'text-brand-frost font-bold' : 'text-gray-500'}">${lesson.id < 10 ? '0' + lesson.id : lesson.id}</span>
-              <div>
-                <span class="font-bold block ${idx === 0 ? 'text-brand-frost' : 'text-gray-300'}">${lesson.title}</span>
-                <span class="text-[10px] text-gray-500">${lesson.duration}</span>
-              </div>
-            </div>
-          </button>
-        `).join('');
-
-        // Render Asset Downloads
-        const assetContainer = document.getElementById('assetList');
-        document.getElementById('assetCount').textContent = currentCourse.assets ? currentCourse.assets.length : 0;
-
-        if (currentCourse.assets && currentCourse.assets.length > 0) {
-          assetContainer.innerHTML = currentCourse.assets.map(asset => `
-            <div class="p-4 bg-black/40 border border-gray-700 rounded-2xl flex items-center justify-between">
-              <div>
-                <span class="font-bold text-xs block text-brand-white">${asset.name}</span>
-                <span class="text-[10px] text-gray-400">${asset.size}</span>
-              </div>
-              <a href="${asset.link}" class="bg-brand-frost text-brand-forest px-4 py-2 rounded-xl text-xs font-bold hover:bg-opacity-90 transition-all">
-                Download
-              </a>
-            </div>
-          `).join('');
-        } else {
-          assetContainer.innerHTML = `<p class="text-xs text-gray-500">No external downloads required for this class.</p>`;
-        }
+      const urlParams = new URLSearchParams(window.location.search);
+      const courseSlug = urlParams.get('id');
+      if (!courseSlug) {
+        document.getElementById('courseTitle').textContent = 'Course not specified';
+        return;
       }
+      loadCourseDetails(courseSlug);
     });
 
     // Dynamic Footer Newsletter Subscription (Connected to Supabase)

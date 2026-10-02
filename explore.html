@@ -121,7 +121,7 @@
     <!-- Category Filter Pills Bar -->
     <div class="space-y-4">
       <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block font-sans">Filter by Subject Area</span>
-      <div class="flex items-center space-x-3 overflow-x-auto text-xs font-medium no-scrollbar pb-2 font-sans">
+      <div id="courseCategoryFilters" class="flex items-center space-x-3 overflow-x-auto text-xs font-medium no-scrollbar pb-2 font-sans">
         <button onclick="filterCategory('all')" id="cat-all" class="cat-pill bg-brand-frost text-brand-forest px-5 py-2.5 rounded-full font-bold cursor-pointer transition-all">All Courses</button>
         <button onclick="filterCategory('cinematography')" id="cat-cinematography" class="cat-pill bg-brand-gray text-gray-300 hover:text-brand-white px-5 py-2.5 rounded-full cursor-pointer transition-colors whitespace-nowrap border border-gray-800">Cinematography</button>
         <button onclick="filterCategory('color-grading')" id="cat-color-grading" class="cat-pill bg-brand-gray text-gray-300 hover:text-brand-white px-5 py-2.5 rounded-full cursor-pointer transition-colors whitespace-nowrap border border-gray-800">Color Grading</button>
@@ -164,9 +164,9 @@
             <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
             <span class="text-xl font-heading text-brand-frost">KES 2,500</span>
           </div>
-          <button onclick="handleEnrollClick('cinematic-storytelling')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+          <a href="course.html?id=cinematic-storytelling" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
             Enroll Now
-          </button>
+          </a>
         </div>
       </div>
 
@@ -200,9 +200,9 @@
             <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
             <span class="text-xl font-heading text-brand-frost">KES 3,000</span>
           </div>
-          <button onclick="handleEnrollClick('davinci-moody')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+          <a href="course.html?id=davinci-resolve-dark-moody" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
             Enroll Now
-          </button>
+          </a>
         </div>
       </div>
 
@@ -236,9 +236,9 @@
             <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
             <span class="text-xl font-heading text-brand-frost">KES 2,000</span>
           </div>
-          <button onclick="handleEnrollClick('business-creativity')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+          <a href="course.html?id=business-creativity" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
             Enroll Now
-          </button>
+          </a>
         </div>
       </div>
 
@@ -272,9 +272,9 @@
             <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
             <span class="text-xl font-heading text-brand-frost">KES 2,800</span>
           </div>
-          <button onclick="handleEnrollClick('documentary-connections')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+          <a href="course.html?id=documentary-connections" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
             Enroll Now
-          </button>
+          </a>
         </div>
       </div>
 
@@ -308,9 +308,9 @@
             <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
             <span class="text-xl font-heading text-brand-frost">KES 2,200</span>
           </div>
-          <button onclick="handleEnrollClick('sound-design')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+          <a href="course.html?id=sound-design" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
             Enroll Now
-          </button>
+          </a>
         </div>
       </div>
 
@@ -344,9 +344,9 @@
             <span class="text-[10px] text-gray-400 block font-sans uppercase">Lifetime Price</span>
             <span class="text-xl font-heading text-brand-frost">KES 1,800</span>
           </div>
-          <button onclick="handleEnrollClick('natural-light-photo')" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
+          <a href="course.html?id=natural-light-photo" class="bg-brand-forest hover:bg-brand-frost hover:text-brand-forest text-brand-white border border-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl transition-all font-sans cursor-pointer">
             Enroll Now
-          </button>
+          </a>
         </div>
       </div>
 
@@ -494,6 +494,7 @@
 
   <!-- Supabase CDN SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="course-cards.js" defer></script>
 
   <!-- Page Logic & Auth Integration -->
   <script>
@@ -539,15 +540,6 @@
       }
     }
 
-    // Handle Enrollment Action
-    function handleEnrollClick(courseId) {
-      if (currentUser) {
-        window.location.href = `library.html?enroll=${courseId}`;
-      } else {
-        openAuthDrawer('signup');
-      }
-    }
-
     // Sign Out Action
     async function handleSignOut() {
       await window.supabaseClient.auth.signOut();
@@ -570,7 +562,7 @@
       }
 
       cards.forEach(card => {
-        if (category === 'all' || card.classList.contains(category)) {
+        if (category === 'all' || card.dataset.category === category) {
           card.style.display = 'flex';
           visible++;
         } else {
