@@ -1,5 +1,8 @@
 ALTER TABLE public.courses
   ADD COLUMN IF NOT EXISTS slug text,
+  ADD COLUMN IF NOT EXISTS category text,
+  ADD COLUMN IF NOT EXISTS description text,
+  ADD COLUMN IF NOT EXISTS duration text,
   ADD COLUMN IF NOT EXISTS instructor text,
   ADD COLUMN IF NOT EXISTS price_kes numeric(10, 2),
   ADD COLUMN IF NOT EXISTS price_usd numeric(10, 2),

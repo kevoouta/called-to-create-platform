@@ -119,7 +119,7 @@
       </div>
 
       <!-- Category Tabs -->
-      <div class="flex flex-wrap gap-3 font-sans text-xs">
+      <div id="shopCategoryFilters" class="flex flex-wrap gap-3 font-sans text-xs">
         <button onclick="filterShop('all')" id="btn-all" class="shop-filter-btn bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-full transition-all cursor-pointer">
           All Deliverables
         </button>
@@ -332,6 +332,7 @@
     let currentUser = null;
     let cart = [];
     let shopProducts = [];
+    let activeShopCategory = 'all';
 
     // Auth State Listener
     document.addEventListener("DOMContentLoaded", () => {
@@ -374,7 +375,7 @@
 
     // Shop Filtering & Search
     function filterShop(category) {
-      const items = document.querySelectorAll('.shop-item');
+      activeShopCategory = category;
       const buttons = document.querySelectorAll('.shop-filter-btn');
 
       buttons.forEach(btn => {
@@ -386,29 +387,53 @@
         activeBtn.className = "shop-filter-btn bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-full transition-all cursor-pointer";
       }
 
-      items.forEach(item => {
-        if (category === 'all' || item.classList.contains(category)) {
-          item.style.display = 'flex';
-        } else {
-          item.style.display = 'none';
-        }
+      applyShopFilters();
+    }
+
+    function shopCategoryKey(category) {
+      return String(category || 'Digital Asset')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+
+    function applyShopFilters() {
+      const term = document.getElementById('searchInput').value.trim().toLowerCase();
+      document.querySelectorAll('.shop-item').forEach(item => {
+        const matchesCategory = activeShopCategory === 'all' || item.dataset.category === activeShopCategory;
+        const matchesSearch = !term || item.textContent.toLowerCase().includes(term);
+        item.style.display = matchesCategory && matchesSearch ? 'flex' : 'none';
       });
     }
 
-    document.getElementById('searchInput').addEventListener('keyup', function(e) {
-      const term = e.target.value.toLowerCase();
-      const items = document.querySelectorAll('.shop-item');
+    function renderShopCategoryFilters(products) {
+      const container = document.getElementById('shopCategoryFilters');
+      if (!container) return;
 
-      items.forEach(item => {
-        const title = item.querySelector('h3').textContent.toLowerCase();
-        const desc = item.querySelector('p').textContent.toLowerCase();
-        if (title.includes(term) || desc.includes(term)) {
-          item.style.display = 'flex';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    });
+      const categories = [...new Map(products
+        .map(product => [shopCategoryKey(product.category), product.category || 'Digital Asset']))
+        .entries()]
+        .sort((first, second) => first[1].localeCompare(second[1]));
+      container.replaceChildren();
+
+      const addFilter = (label, key) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.id = `btn-${key}`;
+        button.className = key === 'all'
+          ? 'shop-filter-btn bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-full transition-all cursor-pointer'
+          : 'shop-filter-btn bg-brand-gray/80 text-gray-300 hover:text-brand-white border border-gray-800 font-medium px-5 py-2.5 rounded-full transition-all cursor-pointer';
+        button.textContent = label;
+        button.addEventListener('click', () => filterShop(key));
+        container.append(button);
+      };
+
+      addFilter('All Deliverables', 'all');
+      categories.forEach(([key, label]) => addFilter(label, key));
+      activeShopCategory = 'all';
+    }
+
+    document.getElementById('searchInput').addEventListener('input', applyShopFilters);
 
     // Cart Drawer Controls
     function toggleCartDrawer() {
@@ -666,9 +691,10 @@ async function loadShopProducts() {
   }
 
   shopProducts = products;
+  renderShopCategoryFilters(products);
 
   shopContainer.innerHTML = products.map(product => `
-    <div class="h-full min-w-0 bg-brand-gray border border-gray-800 rounded-3xl overflow-hidden flex flex-col group hover:border-brand-frost/60 transition-all">
+    <div class="shop-item h-full min-w-0 bg-brand-gray border border-gray-800 rounded-3xl overflow-hidden flex flex-col group hover:border-brand-frost/60 transition-all" data-category="${shopCategoryKey(product.category)}">
       <div class="flex-1">
         <!-- Product Image -->
         <div class="aspect-[16/10] w-full bg-black/40 overflow-hidden relative">
