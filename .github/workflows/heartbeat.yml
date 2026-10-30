@@ -2,9 +2,8 @@ name: Supabase Heartbeat
 
 on:
   schedule:
-    # Runs automatically every 3 days at midnight UTC
     - cron: '0 0 */3 * *'
-  workflow_dispatch: # Allows manual testing from the GitHub dashboard
+  workflow_dispatch:
 
 jobs:
   ping-supabase:
