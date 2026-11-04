@@ -105,7 +105,7 @@
         </div>
 
         <div class="mt-5 border-t border-gray-800 pt-5 space-y-3">
-          <button onclick="handleCoursePurchase()" class="w-full bg-brand-frost text-brand-forest font-bold px-5 py-3 rounded-xl text-xs hover:bg-opacity-90 transition-all font-sans cursor-pointer">
+          <button id="coursePurchaseButton" onclick="handleCoursePurchase()" class="w-full bg-brand-frost text-brand-forest font-bold px-5 py-3 rounded-xl text-xs hover:bg-opacity-90 transition-all font-sans cursor-pointer">
             Purchase Course
           </button>
           <p class="text-[10px] text-gray-500 text-center font-sans">Lifetime access included</p>
@@ -194,8 +194,9 @@
           <span class="text-gray-400">Total</span>
           <span id="courseCartTotal" class="text-brand-frost font-bold">KES 0</span>
         </div>
-        <button onclick="handleCourseCheckout()" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
-          Continue to Checkout
+        <p id="courseCheckoutStatus" class="text-xs hidden" role="status"></p>
+        <button id="courseCheckoutButton" onclick="handleCourseCheckout()" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
+          Continue to Paystack
         </button>
       </div>
     </div>
@@ -321,6 +322,7 @@
     </div>
   </footer>
 
+  <script src="https://js.paystack.co/v2/inline.js"></script>
   <!-- Supabase Data Source -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -329,6 +331,7 @@
     let currentCourse = null;
     let currentUser = null;
     let isCourseInCart = false;
+    let hasCourseAccess = false;
 
     window.supabaseClient = window.supabase.createClient(
       'https://ecbftpfbbfvcxreszsfo.supabase.co',
@@ -354,6 +357,11 @@
     function handleCoursePurchase() {
       if (!currentCourse) return;
 
+      if (hasCourseAccess) {
+        window.location.href = 'library.html';
+        return;
+      }
+
       if (!currentUser) {
         openCourseAuthDrawer('signup');
         return;
@@ -361,6 +369,37 @@
 
       isCourseInCart = true;
       openCourseCart();
+    }
+
+    function updateCoursePurchaseButton() {
+      const button = document.getElementById('coursePurchaseButton');
+      if (!button) return;
+      button.textContent = hasCourseAccess ? 'Go to My Library' : 'Purchase Course';
+    }
+
+    async function refreshCourseAccess() {
+      if (!currentCourse) return;
+      if (!currentUser) {
+        hasCourseAccess = false;
+        updateCoursePurchaseButton();
+        return;
+      }
+
+      const { data: enrollment, error } = await window.supabaseClient
+        .from('enrollments')
+        .select('course_id')
+        .eq('user_id', currentUser.id)
+        .eq('course_id', String(currentCourse.id))
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Could not check course access:', error);
+        return;
+      }
+
+      hasCourseAccess = Boolean(enrollment);
+      updateCoursePurchaseButton();
     }
 
     function openCourseCart() {
@@ -394,17 +433,169 @@
 
     function removeCourseFromCart() {
       isCourseInCart = false;
+      const checkoutButton = document.getElementById('courseCheckoutButton');
+      checkoutButton.disabled = false;
+      checkoutButton.textContent = 'Continue to Paystack';
+      document.getElementById('courseCheckoutStatus').classList.add('hidden');
       openCourseCart();
     }
 
-    function handleCourseCheckout() {
+    function showCourseCheckoutStatus(message, isError = false) {
+      const status = document.getElementById('courseCheckoutStatus');
+      status.textContent = message;
+      status.classList.remove('hidden', 'text-red-400', 'text-brand-frost');
+      status.classList.add(isError ? 'text-red-400' : 'text-brand-frost');
+    }
+
+    async function getCourseCheckoutErrorMessage(error) {
+      if (error?.context instanceof Response) {
+        const body = await error.context.clone().text();
+        if (body) {
+          try {
+            const payload = JSON.parse(body);
+            if (typeof payload.error === 'string') return payload.error;
+          } catch {
+            return body;
+          }
+        }
+      }
+      return error?.message || 'Checkout could not be completed. Please try again.';
+    }
+
+    async function handleCourseCheckout() {
+      if (!currentCourse || !isCourseInCart) {
+        showCourseCheckoutStatus('Add a course to your cart before checking out.', true);
+        return;
+      }
       if (!currentUser) {
         closeCourseCart();
         openCourseAuthDrawer('login');
         return;
       }
 
-      alert('Course checkout is not connected yet.');
+      const button = document.getElementById('courseCheckoutButton');
+      button.disabled = true;
+      button.textContent = 'Opening Paystack...';
+      showCourseCheckoutStatus('Preparing your secure checkout...');
+
+      const callbackUrl = new URL(window.location.href);
+      callbackUrl.searchParams.set('payment_return', '1');
+      callbackUrl.searchParams.delete('reference');
+      callbackUrl.searchParams.delete('trxref');
+
+      try {
+        const { data, error } = await window.supabaseClient.functions.invoke('paystack-checkout', {
+          body: {
+            action: 'initialize',
+            kind: 'course',
+            itemIds: [String(currentCourse.id)],
+            callbackUrl: callbackUrl.toString()
+          }
+        });
+        if (error) throw error;
+
+        if (typeof data?.accessCode !== 'string' || !data.accessCode) {
+          throw new Error('Paystack did not return a checkout access code.');
+        }
+        if (typeof PaystackPop !== 'function') {
+          throw new Error('Paystack checkout could not load. Check your connection and try again.');
+        }
+
+        const popup = new PaystackPop();
+        popup.resumeTransaction(data.accessCode, {
+          onSuccess: (transaction) => {
+            void verifyCoursePayment(transaction?.reference || data.reference);
+          },
+          onCancel: () => {
+            showCourseCheckoutStatus('Payment was cancelled. Your course is still in the cart.', true);
+            button.disabled = false;
+            button.textContent = 'Continue to Paystack';
+          },
+          onError: (error) => {
+            console.error('Paystack course popup error:', error);
+            showCourseCheckoutStatus(error?.message || 'Paystack checkout could not be opened.', true);
+            button.disabled = false;
+            button.textContent = 'Continue to Paystack';
+          }
+        });
+      } catch (error) {
+        console.error('Could not start course checkout:', error);
+        showCourseCheckoutStatus(await getCourseCheckoutErrorMessage(error), true);
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
+      }
+    }
+
+    async function verifyCoursePayment(reference, clearReturnUrl = false) {
+      if (!reference) {
+        showCourseCheckoutStatus('Paystack did not return a payment reference. Please contact support.', true);
+        const button = document.getElementById('courseCheckoutButton');
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
+        return;
+      }
+      if (!currentUser) {
+        showCourseCheckoutStatus('Log in to confirm your payment and unlock the course.', true);
+        openCourseAuthDrawer('login');
+        return;
+      }
+
+      showCourseCheckoutStatus('Confirming your payment...');
+      let result;
+      try {
+        result = await window.supabaseClient.functions.invoke('paystack-checkout', {
+          body: { action: 'verify', reference }
+        });
+      } catch (error) {
+        console.error('Could not verify course payment:', error);
+        showCourseCheckoutStatus(await getCourseCheckoutErrorMessage(error), true);
+        const button = document.getElementById('courseCheckoutButton');
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
+        return;
+      }
+      const { data, error } = result;
+      if (error) {
+        console.error('Could not verify course payment:', error);
+        showCourseCheckoutStatus(await getCourseCheckoutErrorMessage(error), true);
+        const button = document.getElementById('courseCheckoutButton');
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
+        return;
+      }
+
+      if (clearReturnUrl) {
+        const params = new URLSearchParams(window.location.search);
+        params.delete('payment_return');
+        params.delete('reference');
+        params.delete('trxref');
+        const query = params.toString();
+        window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+      }
+
+      if (data?.status === 'success') {
+        hasCourseAccess = true;
+        updateCoursePurchaseButton();
+        showCourseCheckoutStatus('Payment confirmed. The course is now available in your library.');
+        const button = document.getElementById('courseCheckoutButton');
+        button.disabled = true;
+        button.textContent = 'Payment Confirmed';
+      } else {
+        showCourseCheckoutStatus('Payment was not completed. You can try checkout again.', true);
+        const button = document.getElementById('courseCheckoutButton');
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
+      }
+    }
+
+    async function processCoursePaymentReturn() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('payment_return') !== '1') return;
+
+      isCourseInCart = true;
+      openCourseCart();
+      const reference = params.get('reference') || params.get('trxref');
+      await verifyCoursePayment(reference, true);
     }
 
     function openCourseAuthDrawer(tab) {
@@ -464,9 +655,11 @@
 
       currentUser = data.user;
       updateCourseNavForAuth(currentUser);
+      await refreshCourseAccess();
       isCourseInCart = true;
       closeCourseAuthDrawer();
       openCourseCart();
+      await processCoursePaymentReturn();
     }
 
     async function handleCourseSignup(event) {
@@ -490,9 +683,11 @@
       if (data.session && data.user) {
         currentUser = data.user;
         updateCourseNavForAuth(currentUser);
+        await refreshCourseAccess();
         isCourseInCart = true;
         closeCourseAuthDrawer();
         openCourseCart();
+        await processCoursePaymentReturn();
       } else {
         showCourseAuthStatus('courseSignupStatus', 'Account created. Check your email, then log in to continue.');
       }
@@ -646,15 +841,16 @@
       renderCourseDetails(course);
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
       window.supabaseClient.auth.onAuthStateChange((event, session) => {
         currentUser = session ? session.user : null;
         updateCourseNavForAuth(currentUser);
+        void refreshCourseAccess();
       });
-      window.supabaseClient.auth.getSession().then(({ data }) => {
-        currentUser = data.session ? data.session.user : null;
-        updateCourseNavForAuth(currentUser);
-      });
+      const { data, error } = await window.supabaseClient.auth.getSession();
+      if (error) console.error('Could not read the current session:', error);
+      currentUser = data.session ? data.session.user : null;
+      updateCourseNavForAuth(currentUser);
 
       const urlParams = new URLSearchParams(window.location.search);
       const courseSlug = urlParams.get('id');
@@ -662,7 +858,9 @@
         document.getElementById('courseTitle').textContent = 'Course not specified';
         return;
       }
-      loadCourseDetails(courseSlug);
+      await loadCourseDetails(courseSlug);
+      await refreshCourseAccess();
+      await processCoursePaymentReturn();
     });
 
     // Dynamic Footer Newsletter Subscription (Connected to Supabase)

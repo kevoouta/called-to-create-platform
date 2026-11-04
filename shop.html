@@ -139,6 +139,7 @@
     </div>
 
     <!-- Assets Grid -->
+    <p id="shopOwnershipStatus" class="hidden text-xs text-amber-300 font-sans"></p>
     <div id="shopGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
 
     </div>
@@ -163,8 +164,9 @@
           <span class="text-gray-400">Total</span>
           <span id="cartTotal" class="text-brand-frost font-bold">KES 0.00</span>
         </div>
-        <button onclick="handleCheckout()" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
-          Instant Download Checkout
+        <p id="shopCheckoutStatus" class="text-xs hidden" role="status"></p>
+        <button id="shopCheckoutButton" onclick="handleCheckout()" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90 transition-all cursor-pointer">
+          Continue to Paystack
         </button>
       </div>
     </div>
@@ -318,6 +320,7 @@
     </div>
   </footer>
 
+  <script src="https://js.paystack.co/v2/inline.js"></script>
   <!-- Supabase CDN SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -332,14 +335,22 @@
     let currentUser = null;
     let cart = [];
     let shopProducts = [];
+    let purchasedShopProductIds = new Set();
     let activeShopCategory = 'all';
 
     // Auth State Listener
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
       window.supabaseClient.auth.onAuthStateChange((event, session) => {
         currentUser = session ? session.user : null;
         updateNavForAuth(currentUser);
       });
+      const { data, error } = await window.supabaseClient.auth.getSession();
+      if (error) console.error('Could not read the current session:', error);
+      currentUser = data.session ? data.session.user : null;
+      updateNavForAuth(currentUser);
+      await loadPurchasedShopProducts();
+      await loadShopProducts();
+      await processShopPaymentReturn();
     });
 
     // Dynamic Navigation Header
@@ -441,6 +452,10 @@
       drawer.classList.toggle('hidden');
     }
 
+    function persistShopCart() {
+      sessionStorage.setItem('c2c-shop-cart', JSON.stringify(cart.map((item) => String(item.id))));
+    }
+
     function addToCart(productId) {
       const product = shopProducts.find(item => String(item.id) === String(productId));
       if (!product) return;
@@ -450,6 +465,7 @@
         title: product.title,
         price: Number(product.price)
       });
+      persistShopCart();
       updateCartUI();
       toggleCartDrawer();
     }
@@ -467,6 +483,12 @@
       const totalEl = document.getElementById('cartTotal');
 
       countBadge.textContent = cart.length;
+      if (cart.length > 0) {
+        const checkoutButton = document.getElementById('shopCheckoutButton');
+        checkoutButton.disabled = false;
+        checkoutButton.textContent = 'Continue to Paystack';
+        document.getElementById('shopCheckoutStatus').classList.add('hidden');
+      }
 
       if (cart.length === 0) {
         list.innerHTML = `<p class="text-gray-400">Your cart is empty.</p>`;
@@ -491,23 +513,234 @@
       totalEl.textContent = formatPrice(total);
     }
 
-    function removeFromCart(index) {
-      cart.splice(index, 1);
-      updateCartUI();
-    }
+    async function loadPurchasedShopProducts() {
+      purchasedShopProductIds = new Set();
+      const status = document.getElementById('shopOwnershipStatus');
+      status.classList.add('hidden');
+      if (!currentUser) return;
 
-    function handleCheckout() {
-      if (cart.length === 0) {
-        alert('Your cart is empty.');
+      const { data, error } = await window.supabaseClient.functions.invoke('paystack-checkout', {
+        body: { action: 'list_purchases' }
+      });
+      if (error) {
+        console.error('Could not load purchased shop items:', error);
+        status.textContent = 'We could not confirm your shop purchases. Refresh the page before checking out.';
+        status.classList.remove('hidden');
         return;
       }
 
-      if (currentUser) {
-        alert('Redirecting to secure digital asset checkout...');
-      } else {
+      purchasedShopProductIds = new Set(
+        (Array.isArray(data?.products) ? data.products : []).map((product) => String(product.id))
+      );
+    }
+
+    function renderShopProducts() {
+      const shopContainer = document.getElementById('shopGrid');
+      if (!shopContainer) return;
+      shopContainer.innerHTML = shopProducts.map((product) => {
+        const alreadyPurchased = purchasedShopProductIds.has(String(product.id));
+        return `
+          <div class="shop-item h-full min-w-0 bg-brand-gray border border-gray-800 rounded-3xl overflow-hidden flex flex-col group hover:border-brand-frost/60 transition-all" data-category="${shopCategoryKey(product.category)}">
+            <div class="flex-1">
+              <div class="aspect-[16/10] w-full bg-black/40 overflow-hidden relative">
+                <img
+                  src="${product.image_url || 'placeholder.png'}"
+                  alt="${product.title}"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <span class="absolute top-3 left-3 bg-brand-forest/80 backdrop-blur-md text-brand-frost text-[10px] font-bold px-3 py-1 rounded-full border border-brand-frost/20 font-sans uppercase tracking-wider">
+                  ${product.category || 'Digital Asset'}
+                </span>
+                ${alreadyPurchased ? '<span class="absolute top-3 right-3 bg-brand-frost text-brand-forest text-[10px] font-bold px-3 py-1 rounded-full">Purchased</span>' : ''}
+              </div>
+              <div class="p-6 space-y-3">
+                <h3 class="text-xl font-heading line-clamp-2 text-brand-white group-hover:text-brand-frost transition-colors">
+                  ${product.title}
+                </h3>
+                <p class="text-xs text-gray-400 line-clamp-3 leading-relaxed font-sans">
+                  ${product.description || ''}
+                </p>
+              </div>
+            </div>
+            <div class="p-6 pt-4 flex items-center justify-between gap-4 border-t border-gray-800/80 mt-4">
+              <span class="text-lg font-heading text-brand-frost">
+                ${formatPrice(product.price)}
+              </span>
+              ${alreadyPurchased
+                ? '<a href="library.html#purchased-shop-assets" class="text-brand-frost underline text-xs font-bold font-sans">Purchased · My Library</a>'
+                : `<button onclick="addToCart('${product.id}')" class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-2xl text-xs hover:bg-brand-forest hover:text-brand-white transition-all font-sans cursor-pointer">Get Asset</button>`}
+            </div>
+          </div>
+        `;
+      }).join('');
+      applyShopFilters();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      persistShopCart();
+      updateCartUI();
+    }
+
+    function showShopCheckoutStatus(message, isError = false) {
+      const status = document.getElementById('shopCheckoutStatus');
+      status.textContent = message;
+      status.classList.remove('hidden', 'text-red-400', 'text-brand-frost');
+      status.classList.add(isError ? 'text-red-400' : 'text-brand-frost');
+    }
+
+    async function getShopCheckoutErrorMessage(error) {
+      if (error?.context instanceof Response) {
+        const body = await error.context.clone().text();
+        if (body) {
+          try {
+            const payload = JSON.parse(body);
+            if (typeof payload.error === 'string') return payload.error;
+          } catch {
+            return body;
+          }
+        }
+      }
+      return error?.message || 'Checkout could not be completed. Please try again.';
+    }
+
+    async function handleCheckout() {
+      if (cart.length === 0) {
+        showShopCheckoutStatus('Your cart is empty.', true);
+        return;
+      }
+
+      if (!currentUser) {
         toggleCartDrawer();
         openAuthDrawer('signup');
+        return;
       }
+
+      const button = document.getElementById('shopCheckoutButton');
+      button.disabled = true;
+      button.textContent = 'Opening Paystack...';
+      showShopCheckoutStatus('Preparing your secure checkout...');
+
+      const callbackUrl = new URL(window.location.href);
+      callbackUrl.searchParams.set('payment_return', '1');
+      callbackUrl.searchParams.delete('reference');
+      callbackUrl.searchParams.delete('trxref');
+
+      try {
+        const { data, error } = await window.supabaseClient.functions.invoke('paystack-checkout', {
+          body: {
+            action: 'initialize',
+            kind: 'product',
+            itemIds: cart.map((item) => String(item.id)),
+            callbackUrl: callbackUrl.toString()
+          }
+        });
+        if (error) throw error;
+
+        if (typeof data?.accessCode !== 'string' || !data.accessCode) {
+          throw new Error('Paystack did not return a checkout access code.');
+        }
+        if (typeof PaystackPop !== 'function') {
+          throw new Error('Paystack checkout could not load. Check your connection and try again.');
+        }
+
+        const popup = new PaystackPop();
+        popup.resumeTransaction(data.accessCode, {
+          onSuccess: (transaction) => {
+            void verifyShopPayment(transaction?.reference || data.reference);
+          },
+          onCancel: () => {
+            showShopCheckoutStatus('Payment was cancelled. Your assets are still in the cart.', true);
+            button.disabled = false;
+            button.textContent = 'Continue to Paystack';
+          },
+          onError: (error) => {
+            console.error('Paystack digital asset popup error:', error);
+            showShopCheckoutStatus(error?.message || 'Paystack checkout could not be opened.', true);
+            button.disabled = false;
+            button.textContent = 'Continue to Paystack';
+          }
+        });
+      } catch (error) {
+        console.error('Could not start digital asset checkout:', error);
+        showShopCheckoutStatus(await getShopCheckoutErrorMessage(error), true);
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
+      }
+    }
+
+    async function verifyShopPayment(reference, clearReturnUrl = false) {
+      if (!reference) {
+        showShopCheckoutStatus('Paystack did not return a payment reference. Please contact support.', true);
+        const button = document.getElementById('shopCheckoutButton');
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
+        return;
+      }
+      if (!currentUser) {
+        showShopCheckoutStatus('Log in to confirm your payment and complete your order.', true);
+        openAuthDrawer('login');
+        return;
+      }
+
+      showShopCheckoutStatus('Confirming your payment...');
+      let result;
+      try {
+        result = await window.supabaseClient.functions.invoke('paystack-checkout', {
+          body: { action: 'verify', reference }
+        });
+      } catch (error) {
+        console.error('Could not verify digital asset payment:', error);
+        showShopCheckoutStatus(await getShopCheckoutErrorMessage(error), true);
+        const button = document.getElementById('shopCheckoutButton');
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
+        return;
+      }
+      const { data, error } = result;
+      if (error) {
+        console.error('Could not verify digital asset payment:', error);
+        showShopCheckoutStatus(await getShopCheckoutErrorMessage(error), true);
+        const button = document.getElementById('shopCheckoutButton');
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
+        return;
+      }
+
+      if (clearReturnUrl) {
+        const params = new URLSearchParams(window.location.search);
+        params.delete('payment_return');
+        params.delete('reference');
+        params.delete('trxref');
+        const query = params.toString();
+        window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+      }
+
+      if (data?.status === 'success') {
+        cart.forEach((item) => purchasedShopProductIds.add(String(item.id)));
+        cart = [];
+        sessionStorage.removeItem('c2c-shop-cart');
+        updateCartUI();
+        renderShopProducts();
+        showShopCheckoutStatus('Payment confirmed. Your digital asset order has been recorded.');
+        const button = document.getElementById('shopCheckoutButton');
+        button.disabled = true;
+        button.textContent = 'Payment Confirmed';
+      } else {
+        showShopCheckoutStatus('Payment was not completed. Your cart is ready to try again.', true);
+        const button = document.getElementById('shopCheckoutButton');
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
+      }
+    }
+
+    async function processShopPaymentReturn() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('payment_return') !== '1') return;
+
+      document.getElementById('cartDrawer').classList.remove('hidden');
+      const reference = params.get('reference') || params.get('trxref');
+      await verifyShopPayment(reference, true);
     }
 
     // Auth Side Drawer Controls
@@ -574,10 +807,18 @@
         statusText.classList.add('text-red-400');
         submitBtn.disabled = false;
       } else {
+        currentUser = data.user;
+        updateNavForAuth(currentUser);
+        await loadPurchasedShopProducts();
+        renderShopProducts();
         statusText.textContent = 'Success! Redirecting...';
-        setTimeout(() => {
-          closeAuthDrawer();
-        }, 1000);
+        closeAuthDrawer();
+        const paymentReturn = new URLSearchParams(window.location.search).get('payment_return') === '1';
+        if (paymentReturn) {
+          await processShopPaymentReturn();
+        } else if (cart.length > 0) {
+          document.getElementById('cartDrawer').classList.remove('hidden');
+        }
       }
     }
 
@@ -608,6 +849,18 @@
         submitBtn.disabled = false;
       } else {
         statusText.textContent = 'Account created! Please check your email to confirm.';
+        if (data.session && data.user) {
+          currentUser = data.user;
+          updateNavForAuth(currentUser);
+          await loadPurchasedShopProducts();
+          renderShopProducts();
+          closeAuthDrawer();
+          if (new URLSearchParams(window.location.search).get('payment_return') === '1') {
+            await processShopPaymentReturn();
+          } else if (cart.length > 0) {
+            document.getElementById('cartDrawer').classList.remove('hidden');
+          }
+        }
       }
     }
 
@@ -661,11 +914,6 @@ async function handleFooterSubscribe(event) {
   }
 }
 
-// Initialize Supabase Client in shop.html
-document.addEventListener("DOMContentLoaded", () => {
-  loadShopProducts();
-});
-
 async function loadShopProducts() {
   const shopContainer = document.getElementById('shopGrid');
   if (!shopContainer) return;
@@ -678,10 +926,11 @@ async function loadShopProducts() {
 
   const { data: products, error } = await supabaseClient
     .from('products')
-    .select('*')
+    .select('id,title,description,category,image_url,price,created_at')
     .order('created_at', { ascending: false });
 
   if (error || !products || products.length === 0) {
+    if (error) console.error('Could not load shop products:', error);
     shopContainer.innerHTML = `
       <div class="h-48 w-full bg-brand-gray border border-gray-800 rounded-3xl p-8 text-center space-y-3">
         <p class="text-gray-400 text-sm font-sans">No digital assets available in the shop right now. Check back soon!</p>
@@ -691,48 +940,29 @@ async function loadShopProducts() {
   }
 
   shopProducts = products;
+  renderShopProducts();
+  const savedCart = sessionStorage.getItem('c2c-shop-cart');
+  if (savedCart) {
+    try {
+      const savedIds = JSON.parse(savedCart);
+      if (!Array.isArray(savedIds)) throw new Error('Saved cart must be an array.');
+      cart = savedIds
+        .filter((id) => typeof id === 'string')
+        .map((id) => shopProducts.find((product) => String(product.id) === id))
+        .filter(Boolean)
+        .map((product) => ({
+          id: product.id,
+          title: product.title,
+          price: Number(product.price)
+        }));
+      persistShopCart();
+      updateCartUI();
+    } catch (error) {
+      console.error('Could not restore the saved cart:', error);
+      sessionStorage.removeItem('c2c-shop-cart');
+    }
+  }
   renderShopCategoryFilters(products);
-
-  shopContainer.innerHTML = products.map(product => `
-    <div class="shop-item h-full min-w-0 bg-brand-gray border border-gray-800 rounded-3xl overflow-hidden flex flex-col group hover:border-brand-frost/60 transition-all" data-category="${shopCategoryKey(product.category)}">
-      <div class="flex-1">
-        <!-- Product Image -->
-        <div class="aspect-[16/10] w-full bg-black/40 overflow-hidden relative">
-          <img 
-            src="${product.image_url || 'placeholder.png'}" 
-            alt="${product.title}" 
-            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-          <span class="absolute top-3 left-3 bg-brand-forest/80 backdrop-blur-md text-brand-frost text-[10px] font-bold px-3 py-1 rounded-full border border-brand-frost/20 font-sans uppercase tracking-wider">
-            ${product.category || 'Digital Asset'}
-          </span>
-        </div>
-
-        <!-- Product Info -->
-        <div class="p-6 space-y-3">
-          <h3 class="text-xl font-heading line-clamp-2 text-brand-white group-hover:text-brand-frost transition-colors">
-            ${product.title}
-          </h3>
-          <p class="text-xs text-gray-400 line-clamp-3 leading-relaxed font-sans">
-            ${product.description || ''}
-          </p>
-        </div>
-      </div>
-
-      <!-- Price & Purchase Action -->
-      <div class="p-6 pt-4 flex items-center justify-between gap-4 border-t border-gray-800/80 mt-4">
-        <span class="text-lg font-heading text-brand-frost">
-          ${formatPrice(product.price)}
-        </span>
-        <button 
-          onclick="addToCart('${product.id}')" 
-          class="bg-brand-frost text-brand-forest font-bold px-5 py-2.5 rounded-2xl text-xs hover:bg-brand-forest hover:text-brand-white transition-all font-sans cursor-pointer"
-        >
-          Get Asset
-        </button>
-      </div>
-    </div>
-  `).join('');
 }
 
   </script>

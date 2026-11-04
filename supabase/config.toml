@@ -1,0 +1,4 @@
+project_id = "ecbftpfbbfvcxreszsfo"
+
+[functions.paystack-checkout]
+verify_jwt = false

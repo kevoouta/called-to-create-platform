@@ -149,13 +149,26 @@
           <p class="text-xs text-gray-400">Download PowerGrades, LUTs, project files, and raw media assigned to your enrolled courses.</p>
         </div>
         <span class="text-xs text-brand-frost bg-brand-frost/10 border border-brand-frost/20 px-3 py-1.5 rounded-full font-bold">
-          Verified Purchases Only
+          Included with Your Courses
         </span>
       </div>
 
       <!-- Dynamic Downloads List -->
       <div id="libraryAssetList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Rendered dynamically via JavaScript -->
+      </div>
+    </div>
+
+    <div id="purchased-shop-assets" class="bg-brand-gray border border-gray-800 rounded-3xl p-8 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-4">
+        <div>
+          <h3 class="text-2xl font-heading tracking-wide text-brand-white">Purchased Shop Assets</h3>
+          <p class="text-xs text-gray-400">Your confirmed digital asset purchases are available for secure download here.</p>
+        </div>
+        <a href="shop.html" class="text-xs text-brand-frost underline font-bold">Browse Digital Assets</a>
+      </div>
+      <div id="purchasedShopAssetList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <p class="col-span-full text-xs text-gray-400">Loading your shop purchases...</p>
       </div>
     </div>
 
@@ -557,6 +570,7 @@
 
       await loadUserEnrollments(user.id);
       await loadUserAssets(user.id);
+      await loadPurchasedShopAssets();
     }
 
     // 4. Fetch Enrollments from Database
@@ -625,7 +639,7 @@
 
           <div class="space-y-4 pt-2 border-t border-gray-800/80">
             <a 
-              href="course.html?id=${course.id}" 
+              href="course.html?id=${encodeURIComponent(course.slug || course.id)}"
               class="w-full bg-brand-frost text-brand-forest font-bold py-2.5 rounded-2xl text-xs flex items-center justify-center gap-2 hover:bg-opacity-90 transition-all font-sans"
             >
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
@@ -695,6 +709,110 @@
     `;
   }).join('');
 }
+
+    async function loadPurchasedShopAssets() {
+      const container = document.getElementById('purchasedShopAssetList');
+      if (!container) return;
+
+      const { data, error } = await window.supabaseClient.functions.invoke('paystack-checkout', {
+        body: { action: 'list_purchases' }
+      });
+      if (error) {
+        console.error('Could not load purchased shop assets:', error);
+        container.textContent = 'Your purchases could not be loaded. Refresh the page to try again.';
+        return;
+      }
+
+      const products = Array.isArray(data?.products) ? data.products : [];
+      if (products.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full bg-black/40 border border-gray-800/80 rounded-2xl p-6 text-center">
+            <p class="text-xs text-gray-400 font-sans">You do not have any shop purchases yet.</p>
+            <a href="shop.html" class="inline-block mt-3 text-xs text-brand-frost underline font-bold">Explore Digital Assets</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.replaceChildren();
+      for (const product of products) {
+        const card = document.createElement('div');
+        card.className = 'p-4 bg-black/40 border border-gray-800 rounded-2xl flex items-center justify-between gap-3 hover:border-gray-700 transition-all';
+
+        const details = document.createElement('div');
+        details.className = 'min-w-0';
+        const category = document.createElement('span');
+        category.className = 'text-[10px] text-brand-frost font-bold block uppercase tracking-wider truncate font-sans';
+        category.textContent = product.category || 'Digital Asset';
+        const title = document.createElement('span');
+        title.className = 'font-bold text-xs text-brand-white block truncate font-sans';
+        title.textContent = product.title || 'Purchased asset';
+        const description = document.createElement('span');
+        description.className = 'text-[10px] text-gray-500 font-sans block truncate';
+        description.textContent = product.description || 'Verified shop purchase';
+        details.append(category, title, description);
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'bg-brand-frost/20 text-brand-frost border border-brand-frost/30 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-brand-frost hover:text-brand-forest transition-all shrink-0 font-sans cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
+        button.textContent = product.available ? 'Download' : 'Not available yet';
+        button.disabled = !product.available;
+        if (product.available) {
+          button.addEventListener('click', () => downloadPurchasedShopAsset(String(product.id), button));
+        } else {
+          button.title = 'This asset has not been uploaded to the delivery bucket yet.';
+        }
+
+        card.append(details, button);
+        container.append(card);
+      }
+    }
+
+    async function downloadPurchasedShopAsset(productId, button) {
+      const downloadTab = window.open('about:blank', '_blank');
+      if (!downloadTab) {
+        alert('Allow pop-ups for this site to download your asset.');
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = 'Preparing...';
+      try {
+        const { data, error } = await window.supabaseClient.functions.invoke('paystack-checkout', {
+          body: { action: 'download_product', productId }
+        });
+        if (error) throw error;
+
+        const downloadUrl = new URL(data?.downloadUrl || '');
+        if (
+          downloadUrl.protocol !== 'https:' ||
+          downloadUrl.origin !== new URL(SUPABASE_URL).origin ||
+          !downloadUrl.pathname.startsWith('/storage/v1/object/sign/shop-deliverables/')
+        ) {
+          throw new Error('The server returned an invalid download link.');
+        }
+        downloadTab.location.replace(downloadUrl.toString());
+      } catch (error) {
+        console.error('Could not prepare purchased asset download:', error);
+        downloadTab.close();
+        let message = error?.message || 'The download could not be prepared. Please try again.';
+        if (error?.context instanceof Response) {
+          const responseText = await error.context.clone().text();
+          if (responseText) {
+            try {
+              const payload = JSON.parse(responseText);
+              if (typeof payload.error === 'string') message = payload.error;
+            } catch {
+              message = responseText;
+            }
+          }
+        }
+        alert(message);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Download';
+      }
+    }
 
     // Helper for asset downloads
     function downloadFile(fileUrl, title) {
