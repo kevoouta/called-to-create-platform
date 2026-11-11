@@ -497,14 +497,17 @@
         document.getElementById('mfaInstructions').textContent =
           'Scan this QR code with an authenticator app, then enter the code it generates. This setup is required to access the admin dashboard.';
         const qrCode = factor.totp?.qr_code;
-        if (typeof qrCode !== 'string' || !qrCode.trimStart().startsWith('<svg')) {
+        const isSvgDataUrl = typeof qrCode === 'string' &&
+          /^data:image\/svg\+xml(?:;[^,]*)?,/i.test(qrCode);
+        const svgMarkup = typeof qrCode === 'string' && qrCode.trimStart().startsWith('<svg');
+        if (!isSvgDataUrl && !svgMarkup) {
           throw new Error('Supabase did not return a valid authenticator QR code.');
         }
         if (mfaQrObjectUrl) URL.revokeObjectURL(mfaQrObjectUrl);
-        mfaQrObjectUrl = URL.createObjectURL(
-          new Blob([qrCode], { type: 'image/svg+xml' })
-        );
-        document.getElementById('mfaQrCode').src = mfaQrObjectUrl;
+        mfaQrObjectUrl = svgMarkup
+          ? URL.createObjectURL(new Blob([qrCode], { type: 'image/svg+xml' }))
+          : null;
+        document.getElementById('mfaQrCode').src = mfaQrObjectUrl || qrCode;
         document.getElementById('mfaSecret').textContent = factor.totp?.secret || '';
         enrollmentPanel.hidden = false;
       } else {
