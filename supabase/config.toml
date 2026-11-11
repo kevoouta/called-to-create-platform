@@ -2,3 +2,9 @@ project_id = "ecbftpfbbfvcxreszsfo"
 
 [functions.paystack-checkout]
 verify_jwt = false
+
+[functions.course-content]
+verify_jwt = false
+
+[functions.admin-dashboard]
+verify_jwt = false

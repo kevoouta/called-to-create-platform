@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="same-origin">
+  <title>Admin Dashboard | Called to Create</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Decalotype:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Decalotype", sans-serif;
+      background: #132519;
+      color: #fff;
+      font-synthesis: none;
+      --forest: #132519;
+      --frost: #98a869;
+      --panel: #212121;
+      --border: #343a35;
+      --muted: #a7aaa6;
+      --heading: "Bebas Neue", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      position: relative;
+      isolation: isolate;
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+      min-height: 100vh;
+      background: var(--forest) url("Background.png") repeat center;
+      color: #fff;
+      font-family: "Decalotype", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: rgb(19 37 25 / 95%);
+      content: "";
+      pointer-events: none;
+    }
+    button, input, textarea, select { font: inherit; }
+    button {
+      border: 0;
+      border-radius: .75rem;
+      padding: .75rem 1.15rem;
+      font-weight: 700;
+      color: var(--forest);
+      background: var(--frost);
+      cursor: pointer;
+      transition: background-color .18s ease, transform .18s ease, border-color .18s ease;
+    }
+    button:hover:not(:disabled) { background: #a9b97a; }
+    button:disabled { opacity: .6; cursor: wait; }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #454b46;
+      border-radius: .75rem;
+      background: #171a18;
+      color: #fff;
+      padding: .8rem .9rem;
+      transition: border-color .18s ease, box-shadow .18s ease;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--frost);
+      box-shadow: 0 0 0 2px rgb(152 168 105 / 18%);
+    }
+    a { color: #c4d39a; text-decoration: none; }
+    a:hover { color: #fff; }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 5rem;
+      padding: .75rem clamp(1.25rem, 5vw, 2.5rem);
+      border-bottom: 1px solid rgb(52 58 53 / 80%);
+      background: rgb(19 37 25 / 95%);
+      backdrop-filter: blur(14px);
+    }
+    .brand-link { display: inline-flex; align-items: center; gap: .85rem; }
+    .brand-link img { display: block; width: auto; height: 3.25rem; object-fit: contain; }
+    .brand-fallback { font: 1.8rem/1 var(--heading); letter-spacing: .08em; color: #fff; }
+    .admin-label {
+      border-left: 1px solid #555d56;
+      padding-left: .85rem;
+      color: var(--frost);
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .header-actions { display: flex; align-items: center; gap: 1.25rem; }
+    .header-link { color: #d3d6d3; font-size: .85rem; font-weight: 600; }
+    .header-button { border-radius: 999px; padding: .65rem 1.15rem; font-size: .8rem; }
+    main { width: min(80rem, 100%); margin: 0 auto; padding: 2rem clamp(1.25rem, 5vw, 2.5rem) 4rem; flex: 1; }
+    h1, h2, h3 { margin-top: 0; color: #fff; font-family: var(--heading); font-weight: 400; letter-spacing: .035em; line-height: 1; }
+    h1 { font-size: clamp(2.4rem, 5vw, 3.5rem); }
+    h2 { margin-bottom: .6rem; font-size: 1.8rem; }
+    h3 { margin-bottom: .25rem; font-size: 1.45rem; }
+    p { line-height: 1.55; }
+    .muted { color: var(--muted); }
+    .panel, .metric {
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      background: var(--panel);
+      padding: 1.5rem;
+    }
+    .login {
+      width: min(100%, 31rem);
+      margin: clamp(2.5rem, 9vh, 6rem) auto;
+      padding: clamp(1.5rem, 5vw, 2.5rem);
+      border-radius: 1.75rem;
+      box-shadow: 0 24px 80px rgb(0 0 0 / 24%);
+    }
+    .login h1 { margin-bottom: .75rem; }
+    .login > p { margin: 0 0 1.5rem; }
+    .login form { display: grid; gap: 1rem; }
+    .login form label { display: grid; gap: .45rem; color: #d6d8d6; font-size: .9rem; }
+    .login form button { margin-top: .25rem; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 1rem;
+      margin: 1.25rem 0 1.5rem;
+    }
+    .metric { border-radius: 1.1rem; padding: 1.2rem 1.3rem; }
+    .metric span { display: block; color: var(--muted); font-size: .8rem; }
+    .metric strong { display: block; margin-top: .45rem; color: var(--frost); font: 2rem/1 var(--heading); }
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin: 2rem 0 .85rem;
+    }
+    .dashboard-heading {
+      min-height: 12rem;
+      margin: 0 0 1.5rem;
+      padding: clamp(1.5rem, 5vw, 3rem);
+      border-radius: 1.75rem;
+      background: linear-gradient(110deg, #212121 0%, #132519 72%, #080b09 100%);
+      box-shadow: 0 18px 50px rgb(0 0 0 / 18%);
+    }
+    .dashboard-heading h1 { margin: .55rem 0 .45rem; }
+    .dashboard-heading p { margin: 0; }
+    .eyebrow {
+      color: var(--frost);
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .table-wrap { overflow-x: auto; border-radius: 1.25rem; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: .9rem .75rem; border-bottom: 1px solid #383d39; white-space: nowrap; }
+    th { color: var(--frost); font-size: .75rem; letter-spacing: .04em; }
+    td { color: #e2e4e2; font-size: .9rem; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .status { text-transform: capitalize; }
+    .error { color: #ffaaa5 !important; }
+    .notice { margin-top: 1rem; color: #d5d8d5; font-size: .9rem; }
+    .health { display: flex; flex-wrap: wrap; gap: .7rem; }
+    .health span { border: 1px solid #3b443b; border-radius: 2rem; background: var(--forest); padding: .55rem .8rem; }
+    .tabs { display: flex; flex-wrap: wrap; gap: .55rem; margin: 1.5rem 0; }
+    .tabs button { border: 1px solid #454b46; border-radius: 999px; background: var(--panel); color: #d5d8d5; padding: .65rem 1.1rem; font-size: .85rem; }
+    .tabs button:hover:not(:disabled) { border-color: var(--frost); background: #292d29; color: #fff; }
+    .tabs button[aria-pressed="true"] { border-color: var(--frost); background: var(--frost); color: var(--forest); }
+    .editor-layout { display: grid; grid-template-columns: minmax(220px, .7fr) minmax(0, 1.6fr); gap: 1.1rem; }
+    .record-list { display: grid; align-content: start; gap: .5rem; }
+    .record-list button { width: 100%; border: 1px solid transparent; background: #292d29; color: #fff; text-align: left; }
+    .record-list button:hover:not(:disabled), .record-list button[aria-pressed="true"] { border-color: var(--frost); background: #30362f; }
+    .record-list button small { color: #b6bdb5; font-weight: 400; }
+    .editor-form { display: grid; gap: 1rem; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .8rem; }
+    .form-grid label, .editor-form > label { display: grid; gap: .45rem; color: #d1d8c0; font-size: .85rem; }
+    textarea { min-height: 260px; font: .85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    select { min-height: 2.8rem; }
+    .warning { border-left: 3px solid var(--frost); border-radius: 0 .75rem .75rem 0; padding: .8rem 1rem; background: var(--forest); }
+    .audit-detail { max-width: 550px; white-space: normal; }
+    .audit-detail pre { max-height: 320px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; color: #d7dfd1; }
+    #auditDetailPanel { margin-top: 1rem; }
+    #overviewSection > .panel { margin-bottom: 1.75rem; }
+    #overviewSection > .panel > p { margin-bottom: 0; font-size: .85rem; }
+    #overviewSection > p:last-child { margin-top: 1.5rem; }
+    [hidden] { display: none !important; }
+    @media (max-width: 680px) {
+      header { min-height: 4.5rem; padding-inline: 1rem; }
+      .brand-link img { height: 2.6rem; }
+      .brand-link { gap: .55rem; }
+      .admin-label { padding-left: .55rem; font-size: .65rem; }
+      .header-actions { gap: .7rem; }
+      .header-link { display: none; }
+      main { padding: 1.25rem 1rem 3rem; }
+      .section-heading { align-items: flex-start; flex-direction: column; }
+      .dashboard-heading { min-height: auto; }
+      .panel { padding: 1.1rem; }
+      .login { padding: 1.5rem; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
+      .metric { padding: 1rem; }
+      .metric strong { font-size: 1.7rem; }
+      th, td { padding: .7rem .5rem; font-size: .82rem; }
+      .editor-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="brand-link" href="index.html" aria-label="Called to Create home">
+      <img src="C2C Logo (White).png" alt="Called to Create" onerror="this.style.display='none'; this.nextElementSibling.hidden=false;">
+      <span class="brand-fallback" hidden>CALLED TO CREATE</span>
+      <span class="admin-label">Admin</span>
+    </a>
+    <div class="header-actions">
+      <a class="header-link" href="index.html">Return to site</a>
+      <button class="header-button" id="signOutButton" type="button" hidden>Sign out</button>
+    </div>
+  </header>
+  <main>
+    <section id="loginPanel" class="panel login">
+      <span class="eyebrow">Administrator access</span>
+      <h1>Admin sign in</h1>
+      <p class="muted">Sign in with an administrator account. Access is checked again by the server for every dashboard request.</p>
+      <form id="loginForm">
+        <label>Email<input id="emailInput" type="email" autocomplete="username" required></label>
+        <label>Password<input id="passwordInput" type="password" autocomplete="current-password" required></label>
+        <button id="signInButton" type="submit">Sign in</button>
+      </form>
+      <p id="loginStatus" class="notice" role="status"></p>
+    </section>
+
+    <section id="dashboardPanel" hidden>
+      <div class="section-heading dashboard-heading">
+        <div>
+          <span class="eyebrow">Called to Create · Admin</span>
+          <h1>Operations overview</h1>
+          <p id="dashboardUpdated" class="muted">Sign in to load current statistics.</p>
+        </div>
+        <button id="refreshButton" type="button">Refresh data</button>
+      </div>
+
+      <p id="dashboardStatus" class="notice" role="status"></p>
+      <nav class="tabs" aria-label="Admin dashboard sections">
+        <button type="button" data-admin-tab="overview" aria-pressed="true">Overview</button>
+        <button type="button" data-admin-tab="courses" aria-pressed="false">Courses</button>
+        <button type="button" data-admin-tab="products" aria-pressed="false">Shop products</button>
+        <button type="button" data-admin-tab="audit" aria-pressed="false">Audit log</button>
+      </nav>
+
+      <div id="overviewSection" data-admin-section="overview">
+      <section id="metrics" class="metrics" aria-label="Platform metrics"></section>
+
+      <section class="panel">
+        <h2>Service check</h2>
+        <div id="serviceHealth" class="health muted">Not checked yet.</div>
+        <p class="muted">Database timings are a one-time sample from this request, not historical site-speed or uptime analytics.</p>
+      </section>
+
+      <section>
+        <div class="section-heading">
+          <h2>Recent payment orders</h2>
+          <span class="muted">Latest 10 · no customer contact details</span>
+        </div>
+        <div class="panel table-wrap">
+          <table>
+            <thead>
+              <tr><th>Reference</th><th>Type</th><th>Amount</th><th>Status</th><th>Created</th></tr>
+            </thead>
+            <tbody id="ordersBody">
+              <tr><td class="muted" colspan="5">No data loaded.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <p><a href="index.html">Return to site</a></p>
+      </div>
+
+      <section id="coursesSection" data-admin-section="courses" hidden>
+        <div class="section-heading">
+          <div>
+            <h2>Course content</h2>
+            <p class="muted">Edit existing courses and protected lesson materials. Course creation and deletion are intentionally disabled.</p>
+          </div>
+          <button type="button" data-content-refresh>Refresh courses</button>
+        </div>
+        <p id="coursesStatus" class="notice" role="status">Load course records to begin.</p>
+        <div class="editor-layout">
+          <div id="courseList" class="record-list panel" aria-label="Courses"></div>
+          <form id="courseEditor" class="editor-form panel" hidden>
+            <h3 id="courseEditorTitle">Edit course</h3>
+            <div class="form-grid">
+              <label>Title<input name="title" maxlength="160" required></label>
+              <label>Slug<input name="slug" maxlength="128" pattern="[A-Za-z0-9_-]+" required></label>
+              <label>Category<input name="category" maxlength="100"></label>
+              <label>Instructor<input name="instructor" maxlength="160"></label>
+              <label>Duration<input name="duration" maxlength="100"></label>
+              <label>Public preview Bunny embed URL<input name="preview_video_url" maxlength="2048"></label>
+              <label>KES price<input name="price_kes" type="number" min="0.01" step="0.01" required></label>
+              <label>USD price (optional)<input name="price_usd" type="number" min="0" step="0.01"></label>
+              <label>Module count<input name="module_count" type="number" min="0" step="1"></label>
+              <label>Display order<input name="display_order" type="number" min="0" step="1"></label>
+              <label>Course image URL<input name="image_url" type="url" maxlength="2048"></label>
+              <label>Card highlight<input name="card_highlight" maxlength="200"></label>
+              <label>Published<select name="is_published"><option value="true">Yes</option><option value="false">No</option></select></label>
+              <label>Featured<select name="is_featured"><option value="false">No</option><option value="true">Yes</option></select></label>
+            </div>
+            <label>Description<textarea name="description" rows="4" maxlength="10000"></textarea></label>
+            <label>Private curriculum JSON<textarea name="curriculum" spellcheck="false" required></textarea></label>
+            <p class="warning muted">Use Bunny Stream embed URLs for lessons. Assets must use private bucket-relative storage_path values; public external links are rejected.</p>
+            <label>Private assets JSON<textarea name="assets" spellcheck="false" required></textarea></label>
+            <button type="submit">Save course and record audit entry</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="productsSection" data-admin-section="products" hidden>
+        <div class="section-heading">
+          <div>
+            <h2>Shop products</h2>
+            <p class="muted">Edit existing product details and private delivery paths. Creation and deletion are intentionally disabled.</p>
+          </div>
+          <button type="button" data-content-refresh>Refresh products</button>
+        </div>
+        <p id="productsStatus" class="notice" role="status">Load product records to begin.</p>
+        <div class="editor-layout">
+          <div id="productList" class="record-list panel" aria-label="Products"></div>
+          <form id="productEditor" class="editor-form panel" hidden>
+            <h3 id="productEditorTitle">Edit product</h3>
+            <div class="form-grid">
+              <label>Title<input name="title" maxlength="160" required></label>
+              <label>Category<input name="category" maxlength="100"></label>
+              <label>Price (KES)<input name="price" type="number" min="0.01" step="0.01" required></label>
+              <label>Image URL<input name="image_url" type="url" maxlength="2048"></label>
+              <label>Private storage path<input name="storage_path" maxlength="1024"></label>
+            </div>
+            <label>Description<textarea name="description" rows="4" maxlength="10000"></textarea></label>
+            <p class="warning muted">Upload downloadable files to the private shop-deliverables bucket and enter only the object path, not a public URL.</p>
+            <button type="submit">Save product and record audit entry</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="auditSection" data-admin-section="audit" hidden>
+        <div class="section-heading">
+          <div>
+            <h2>Content audit log</h2>
+            <p class="muted">Latest 50 changes to course and shop content.</p>
+          </div>
+          <button type="button" id="auditRefreshButton">Refresh audit log</button>
+        </div>
+        <p id="auditStatus" class="notice" role="status">Load audit entries to begin.</p>
+        <div class="panel table-wrap">
+          <table>
+            <thead><tr><th>Changed</th><th>Admin user ID</th><th>Content type</th><th>Content ID</th><th>Details</th></tr></thead>
+            <tbody id="auditBody"><tr><td class="muted" colspan="5">No data loaded.</td></tr></tbody>
+          </table>
+        </div>
+        <section id="auditDetailPanel" class="panel" hidden>
+          <h3>Before / after snapshot</h3>
+          <pre id="auditDetailContent" class="audit-detail"></pre>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://ecbftpfbbfvcxreszsfo.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_AQZBPX4R8Q4IxQnKO2euYw_IWwlxlb9';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const metrics = [
+      ['courses', 'Courses'],
+      ['products', 'Shop products'],
+      ['enrollments', 'Enrollments'],
+      ['orders', 'Payment orders'],
+      ['paidOrders', 'Paid orders'],
+      ['pendingOrders', 'Pending orders'],
+      ['failedOrders', 'Failed orders']
+    ];
+    let contentRecords = null;
+    let selectedCourseId = null;
+    let selectedProductId = null;
+    let activeSection = 'overview';
+
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[character]);
+
+    function setLoginStatus(message, isError = false) {
+      const status = document.getElementById('loginStatus');
+      status.textContent = message;
+      status.className = `notice${isError ? ' error' : ''}`;
+    }
+
+    function setDashboardStatus(message, isError = false) {
+      const status = document.getElementById('dashboardStatus');
+      status.textContent = message;
+      status.className = `notice${isError ? ' error' : ''}`;
+    }
+
+    function showSignedInState(signedIn) {
+      document.getElementById('loginPanel').hidden = signedIn;
+      document.getElementById('dashboardPanel').hidden = !signedIn;
+      document.getElementById('signOutButton').hidden = !signedIn;
+    }
+
+    function setSection(section) {
+      activeSection = section;
+      document.querySelectorAll('[data-admin-tab]').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.dataset.adminTab === section));
+      });
+      document.querySelectorAll('[data-admin-section]').forEach((element) => {
+        element.hidden = element.dataset.adminSection !== section;
+      });
+      if (section === 'courses' || section === 'products') {
+        void loadContentRecords();
+      } else if (section === 'audit') {
+        void loadAuditLog();
+      }
+    }
+
+    async function invokeAdmin(action, payload = {}) {
+      const { data, error } = await supabaseClient.functions.invoke('admin-dashboard', {
+        body: { action, ...payload }
+      });
+      if (error) throw new Error(error.message || 'Admin dashboard request failed.');
+      if (data?.error) throw new Error(data.error);
+      return data;
+    }
+
+    async function loadContentRecords() {
+      const status = document.getElementById(activeSection === 'courses' ? 'coursesStatus' : 'productsStatus');
+      status.textContent = 'Loading content...';
+      try {
+        contentRecords = await invokeAdmin('content_list');
+        renderContentLists();
+        status.textContent = activeSection === 'courses' ? 'Course records loaded.' : 'Product records loaded.';
+      } catch (error) {
+        console.error('Could not load content records:', error);
+        status.textContent = error.message || 'Could not load content records.';
+        status.className = 'notice error';
+      }
+    }
+
+    function renderContentLists() {
+      const courses = Array.isArray(contentRecords?.courses) ? contentRecords.courses : [];
+      const products = Array.isArray(contentRecords?.products) ? contentRecords.products : [];
+      document.getElementById('courseList').innerHTML = courses.length
+        ? courses.map((course) => `
+          <button type="button" data-course-id="${escapeHtml(course.id)}">
+            ${escapeHtml(course.title)}<br><small>${escapeHtml(course.is_published ? 'Published' : 'Draft')} · ${escapeHtml(course.slug)}</small>
+          </button>`).join('')
+        : '<p class="muted">No courses found.</p>';
+      document.getElementById('productList').innerHTML = products.length
+        ? products.map((product) => `
+          <button type="button" data-product-id="${escapeHtml(product.id)}">
+            ${escapeHtml(product.title)}<br><small>${escapeHtml(product.category || 'Digital asset')}</small>
+          </button>`).join('')
+        : '<p class="muted">No products found.</p>';
+
+      document.querySelectorAll('[data-course-id]').forEach((button) => {
+        button.addEventListener('click', () => selectCourse(button.dataset.courseId));
+      });
+      document.querySelectorAll('[data-product-id]').forEach((button) => {
+        button.addEventListener('click', () => selectProduct(button.dataset.productId));
+      });
+      if (selectedCourseId) selectCourse(selectedCourseId);
+      if (selectedProductId) selectProduct(selectedProductId);
+    }
+
+    function selectCourse(courseId) {
+      const course = contentRecords?.courses?.find((record) => String(record.id) === courseId);
+      if (!course) return;
+      selectedCourseId = courseId;
+      const form = document.getElementById('courseEditor');
+      const scalarFields = [
+        'title', 'slug', 'category', 'description', 'duration', 'instructor', 'preview_video_url', 'price_kes',
+        'price_usd', 'is_published', 'is_featured', 'module_count', 'card_highlight',
+        'image_url', 'display_order'
+      ];
+      scalarFields.forEach((name) => {
+        form.elements.namedItem(name).value = course[name] ?? '';
+      });
+      const privateContent = course.private_content || { curriculum: [], assets: [] };
+      form.elements.namedItem('curriculum').value =
+        JSON.stringify(Array.isArray(privateContent.curriculum) ? privateContent.curriculum : [], null, 2);
+      form.elements.namedItem('assets').value =
+        JSON.stringify(Array.isArray(privateContent.assets) ? privateContent.assets : [], null, 2);
+      document.getElementById('courseEditorTitle').textContent = `Edit course · ${course.title}`;
+      form.hidden = false;
+      document.getElementById('courseList').querySelectorAll('[data-course-id]').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.dataset.courseId === courseId));
+      });
+    }
+
+    function selectProduct(productId) {
+      const product = contentRecords?.products?.find((record) => String(record.id) === productId);
+      if (!product) return;
+      selectedProductId = productId;
+      const form = document.getElementById('productEditor');
+      ['title', 'description', 'category', 'image_url', 'price', 'storage_path'].forEach((name) => {
+        form.elements.namedItem(name).value = product[name] ?? '';
+      });
+      document.getElementById('productEditorTitle').textContent = `Edit product · ${product.title}`;
+      form.hidden = false;
+      document.getElementById('productList').querySelectorAll('[data-product-id]').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.dataset.productId === productId));
+      });
+    }
+
+    function formValues(form, names) {
+      return Object.fromEntries(names.map((name) => [name, form.elements.namedItem(name).value]));
+    }
+
+    async function saveCourse(event) {
+      event.preventDefault();
+      if (!selectedCourseId) return;
+      const form = event.currentTarget;
+      const button = form.querySelector('button[type="submit"]');
+      const status = document.getElementById('coursesStatus');
+      button.disabled = true;
+      status.textContent = 'Saving course...';
+      status.className = 'notice';
+      try {
+        const values = formValues(form, [
+          'title', 'slug', 'category', 'description', 'duration', 'instructor', 'preview_video_url', 'price_kes',
+          'price_usd', 'is_published', 'is_featured', 'module_count', 'card_highlight',
+          'image_url', 'display_order'
+        ]);
+        for (const key of ['price_kes', 'price_usd', 'module_count', 'display_order']) {
+          values[key] = values[key] === '' ? null : Number(values[key]);
+        }
+        values.is_published = values.is_published === 'true';
+        values.is_featured = values.is_featured === 'true';
+        const privateContent = {
+          curriculum: JSON.parse(form.elements.namedItem('curriculum').value),
+          assets: JSON.parse(form.elements.namedItem('assets').value)
+        };
+        await invokeAdmin('save_course', { entityId: selectedCourseId, fields: values, privateContent });
+        await loadContentRecords();
+        status.textContent = 'Course saved and audit entry recorded.';
+        status.className = 'notice';
+      } catch (error) {
+        console.error('Could not save course:', error);
+        status.textContent = error.message || 'Could not save course.';
+        status.className = 'notice error';
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function saveProduct(event) {
+      event.preventDefault();
+      if (!selectedProductId) return;
+      const form = event.currentTarget;
+      const button = form.querySelector('button[type="submit"]');
+      const status = document.getElementById('productsStatus');
+      button.disabled = true;
+      status.textContent = 'Saving product...';
+      status.className = 'notice';
+      try {
+        const values = formValues(form, [
+          'title', 'description', 'category', 'image_url', 'price', 'storage_path'
+        ]);
+        values.price = Number(values.price);
+        await invokeAdmin('save_product', { entityId: selectedProductId, fields: values });
+        await loadContentRecords();
+        status.textContent = 'Product saved and audit entry recorded.';
+        status.className = 'notice';
+      } catch (error) {
+        console.error('Could not save product:', error);
+        status.textContent = error.message || 'Could not save product.';
+        status.className = 'notice error';
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function loadAuditDetail(auditId) {
+      const panel = document.getElementById('auditDetailPanel');
+      const content = document.getElementById('auditDetailContent');
+      panel.hidden = false;
+      content.textContent = 'Loading audit snapshot...';
+      try {
+        const detail = await invokeAdmin('audit_detail', { auditId: Number(auditId) });
+        content.textContent = JSON.stringify({
+          before: detail.before_data,
+          after: detail.after_data
+        }, null, 2);
+      } catch (error) {
+        console.error('Could not load audit snapshot:', error);
+        content.textContent = error.message || 'Could not load audit snapshot.';
+      }
+    }
+
+    async function loadAuditLog() {
+      const status = document.getElementById('auditStatus');
+      status.textContent = 'Loading audit entries...';
+      status.className = 'notice';
+      try {
+        const entries = await invokeAdmin('audit_list');
+        document.getElementById('auditBody').innerHTML = entries.length
+          ? entries.map((entry) => `
+            <tr>
+              <td>${escapeHtml(new Date(entry.created_at).toLocaleString())}</td>
+              <td>${escapeHtml(entry.actor_id)}</td>
+              <td>${escapeHtml(entry.entity_type)}</td>
+              <td>${escapeHtml(entry.entity_id)}</td>
+              <td><button type="button" data-audit-id="${escapeHtml(entry.id)}">View snapshot</button></td>
+            </tr>`).join('')
+          : '<tr><td class="muted" colspan="5">No content changes recorded yet.</td></tr>';
+        document.querySelectorAll('[data-audit-id]').forEach((button) => {
+          button.addEventListener('click', () => void loadAuditDetail(button.dataset.auditId));
+        });
+        status.textContent = 'Audit log loaded.';
+      } catch (error) {
+        console.error('Could not load content audit log:', error);
+        status.textContent = error.message || 'Could not load audit log.';
+        status.className = 'notice error';
+      }
+    }
+
+    async function loadDashboard() {
+      const refreshButton = document.getElementById('refreshButton');
+      refreshButton.disabled = true;
+      setDashboardStatus('Loading operational data...');
+      const startedAt = performance.now();
+      try {
+        const { data, error } = await supabaseClient.functions.invoke('admin-dashboard', {
+          body: { action: 'overview' }
+        });
+        if (error || !data) {
+          const message = error?.message || 'No dashboard data was returned.';
+          setDashboardStatus(message, true);
+          return;
+        }
+
+        document.getElementById('metrics').innerHTML = metrics.map(([key, label]) => `
+          <article class="metric">
+            <span>${label}</span>
+            <strong>${Number(data.counts?.[key] ?? 0).toLocaleString()}</strong>
+          </article>`).join('');
+
+        const orders = Array.isArray(data.recentOrders) ? data.recentOrders : [];
+        document.getElementById('ordersBody').innerHTML = orders.length
+          ? orders.map((order) => `
+            <tr>
+              <td>${escapeHtml(order.reference)}</td>
+              <td>${escapeHtml(order.item_type)}</td>
+              <td>${escapeHtml(order.currency)} ${((Number(order.amount_minor) || 0) / 100).toLocaleString()}</td>
+              <td class="status">${escapeHtml(order.status)}</td>
+              <td>${escapeHtml(new Date(order.created_at).toLocaleString())}</td>
+            </tr>`).join('')
+          : '<tr><td class="muted" colspan="5">No payment orders found.</td></tr>';
+
+        const queryTimings = data.diagnostics?.databaseQueryMs;
+        const timingSummary = queryTimings && typeof queryTimings === 'object'
+          ? `Database queries: ${Object.entries(queryTimings).map(([name, value]) => `${escapeHtml(name)} ${Number(value)} ms`).join(' · ')}`
+          : 'Database query timings unavailable.';
+        document.getElementById('serviceHealth').innerHTML =
+          `<span>Supabase database: ${escapeHtml(data.diagnostics?.database || 'unknown')}</span><span>${escapeHtml(timingSummary)}</span><span>Dashboard request: ${Math.round(performance.now() - startedAt)} ms</span>`;
+        document.getElementById('dashboardUpdated').textContent =
+          `Snapshot generated ${new Date(data.generatedAt).toLocaleString()}.`;
+        setDashboardStatus('Dashboard data loaded.');
+      } catch (error) {
+        console.error('Could not load admin dashboard:', error);
+        setDashboardStatus('Could not load dashboard data. Please try again.', true);
+      } finally {
+        refreshButton.disabled = false;
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = document.getElementById('signInButton');
+      button.disabled = true;
+      setLoginStatus('Signing in...');
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email: document.getElementById('emailInput').value.trim(),
+        password: document.getElementById('passwordInput').value
+      });
+      if (error) {
+        setLoginStatus(error.message, true);
+      } else {
+        document.getElementById('passwordInput').value = '';
+        setLoginStatus('Signed in. Checking administrator access...');
+      }
+      button.disabled = false;
+    });
+
+    document.getElementById('refreshButton').addEventListener('click', loadDashboard);
+    document.querySelectorAll('[data-admin-tab]').forEach((button) => {
+      button.addEventListener('click', () => setSection(button.dataset.adminTab));
+    });
+    document.querySelectorAll('[data-content-refresh]').forEach((button) => {
+      button.addEventListener('click', loadContentRecords);
+    });
+    document.getElementById('auditRefreshButton').addEventListener('click', loadAuditLog);
+    document.getElementById('courseEditor').addEventListener('submit', saveCourse);
+    document.getElementById('productEditor').addEventListener('submit', saveProduct);
+    document.getElementById('signOutButton').addEventListener('click', async () => {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) {
+        setDashboardStatus('Could not sign out. Please try again.', true);
+        console.error('Could not sign out from admin dashboard:', error);
+      }
+    });
+
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      const signedIn = Boolean(session?.user);
+      showSignedInState(signedIn);
+      if (signedIn && event !== 'INITIAL_SESSION') {
+        void loadDashboard();
+      } else if (!signedIn && event !== 'INITIAL_SESSION') {
+        setLoginStatus('Signed out.');
+      }
+    });
+
+    supabaseClient.auth.getSession().then(({ data, error }) => {
+      if (error) {
+        console.error('Could not restore admin session:', error);
+        setLoginStatus('Could not restore your session. Sign in again.', true);
+        return;
+      }
+      const signedIn = Boolean(data.session?.user);
+      showSignedInState(signedIn);
+      if (signedIn) void loadDashboard();
+    });
+  </script>
+</body>
+</html>

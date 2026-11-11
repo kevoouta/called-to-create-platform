@@ -1,0 +1,17 @@
+[build]
+  # Tells Netlify your root folder contains the static site files
+  publish = "."
+  command = ""
+
+# Automatically handle clean URLs (allows visiting /explore instead of /explore.html)
+[[redirects]]
+  from = "/*"
+  to = "/:splat"
+  status = 200
+
+# Optional: Basic security headers for your production site
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"

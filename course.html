@@ -71,18 +71,20 @@
     
     <!-- Left Column: Video Player Frame (2 Columns) -->
     <div class="lg:col-span-2 space-y-4">
-      <div class="bg-black aspect-video rounded-3xl border border-gray-800 relative overflow-hidden shadow-2xl flex flex-col justify-between group">
+      <div class="w-full aspect-video bg-black rounded-3xl border border-gray-800 relative overflow-hidden shadow-2xl">
         
         <!-- BunnyStream Video Embed Container -->
         <iframe 
-          id="videoPlayer" 
-          src="" 
-          class="w-full h-full border-0 absolute inset-0" 
+          id="videoPlayer"
+          title="Course video"
+          class="w-full h-full border-0 absolute inset-0 hidden"
           loading="lazy"
-          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" 
+          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
           allowfullscreen>
         </iframe>
-
+        <div id="videoPlayerPlaceholder" class="absolute inset-0 flex items-center justify-center p-6 text-center" role="status">
+          <p id="videoPlayerStatus" class="max-w-sm text-sm text-gray-400">Select a course or lesson to start watching.</p>
+        </div>
       </div>
     </div>
 
@@ -101,7 +103,7 @@
 
         <!-- Dynamic Lesson List Container -->
         <div id="curriculumList" class="space-y-2 font-sans max-h-[400px] overflow-y-auto pr-1">
-          <!-- Lessons render dynamically from catalog.js -->
+          <!-- Protected lesson content is loaded after enrollment is confirmed. -->
         </div>
 
         <div class="mt-5 border-t border-gray-800 pt-5 space-y-3">
@@ -156,7 +158,7 @@
       <div id="tabAssets" class="space-y-3 font-sans hidden">
         <h3 class="text-xl font-heading tracking-wide text-brand-white mb-2">Project Downloads</h3>
         <div id="assetList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Downloadable items render dynamically from catalog.js -->
+          <!-- Protected course resources are loaded after enrollment is confirmed. -->
         </div>
       </div>
 
@@ -312,7 +314,7 @@
       </div>
 
       <div class="border-t border-gray-800/80 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-[11px]">
-        <p>© 2026 Called to Create Ltd. All rights reserved.</p>
+        <p>© 2026 Called to Create (A Subsidiary of Jiwe Msingi Media &amp; Entertainment Ltd). All rights reserved.</p>
         <div class="flex space-x-6">
           <a href="terms.html" class="hover:text-brand-white">Terms of Service</a>
           <a href="privacy.html" class="hover:text-brand-white">Privacy Policy</a>
@@ -332,6 +334,10 @@
     let currentUser = null;
     let isCourseInCart = false;
     let hasCourseAccess = false;
+    let courseAccessRequestId = 0;
+    let courseMediaRequestId = 0;
+    let protectedCourseLessons = [];
+    let protectedCourseAssets = [];
 
     window.supabaseClient = window.supabase.createClient(
       'https://ecbftpfbbfvcxreszsfo.supabase.co',
@@ -379,27 +385,56 @@
 
     async function refreshCourseAccess() {
       if (!currentCourse) return;
+      const requestId = ++courseAccessRequestId;
       if (!currentUser) {
         hasCourseAccess = false;
         updateCoursePurchaseButton();
+        clearProtectedCourseContent('Sign in and enroll to access lessons and course materials.');
+        await resetToPublicCoursePreview();
         return;
       }
 
-      const { data: enrollment, error } = await window.supabaseClient
-        .from('enrollments')
-        .select('course_id')
-        .eq('user_id', currentUser.id)
-        .eq('course_id', String(currentCourse.id))
-        .limit(1)
-        .maybeSingle();
+      const userId = currentUser.id;
+      let enrollment;
+      let error;
+      try {
+        ({ data: enrollment, error } = await window.supabaseClient
+          .from('enrollments')
+          .select('course_id')
+          .eq('user_id', userId)
+          .eq('course_id', String(currentCourse.id))
+          .limit(1)
+          .maybeSingle());
+      } catch (requestError) {
+        if (requestId !== courseAccessRequestId || currentUser?.id !== userId) return;
+        console.error('Could not check course access:', requestError);
+        hasCourseAccess = false;
+        updateCoursePurchaseButton();
+        clearProtectedCourseContent('Course access could not be verified. Please try again.');
+        await resetToPublicCoursePreview();
+        return;
+      }
 
+      if (requestId !== courseAccessRequestId || currentUser?.id !== userId) return;
       if (error) {
         console.error('Could not check course access:', error);
+        hasCourseAccess = false;
+        updateCoursePurchaseButton();
+        clearProtectedCourseContent('Course access could not be verified. Please try again.');
+        await loadCoursePreview();
         return;
       }
 
       hasCourseAccess = Boolean(enrollment);
       updateCoursePurchaseButton();
+      if (hasCourseAccess) {
+        await loadCoursePreview();
+        if (requestId !== courseAccessRequestId || !currentUser || !hasCourseAccess) return;
+        await loadProtectedCourseContent(requestId);
+      } else {
+        clearProtectedCourseContent('Enroll in this course to access its lessons and materials.');
+        await resetToPublicCoursePreview();
+      }
     }
 
     function openCourseCart() {
@@ -577,6 +612,7 @@
         hasCourseAccess = true;
         updateCoursePurchaseButton();
         showCourseCheckoutStatus('Payment confirmed. The course is now available in your library.');
+        await refreshCourseAccess();
         const button = document.getElementById('courseCheckoutButton');
         button.disabled = true;
         button.textContent = 'Payment Confirmed';
@@ -715,20 +751,22 @@
       }
     }
 
-    // Function to load selected lesson into iframe
-    function playLesson(index, videoUrl) {
-      if (videoUrl) {
-        document.getElementById('videoPlayer').src = videoUrl;
-      }
-      
-      // Update Active State on Lesson Buttons
+    function playLesson(index, videoUrl, title) {
+      setCourseVideo(videoUrl, title);
+
       const buttons = document.querySelectorAll('#curriculumList button');
       buttons.forEach((btn, idx) => {
-        if (idx === index) {
-          btn.className = "w-full text-left p-3 rounded-2xl border border-brand-frost bg-brand-forest text-brand-white text-xs flex justify-between items-center transition-all cursor-pointer";
-        } else {
-          btn.className = "w-full text-left p-3 rounded-2xl border border-gray-800 bg-black/30 text-gray-400 hover:border-gray-700 text-xs flex justify-between items-center transition-all cursor-pointer";
-        }
+        const isActive = idx === index;
+        btn.className = `w-full text-left p-3 rounded-2xl border text-xs flex justify-between items-center transition-all cursor-pointer ${
+          isActive
+            ? 'border-brand-frost bg-brand-forest text-brand-white'
+            : 'border-gray-800 bg-black/30 text-gray-400 hover:border-gray-700'
+        }`;
+        btn.setAttribute('aria-pressed', String(isActive));
+        const lessonTitle = btn.querySelector('[data-lesson-title]');
+        if (lessonTitle) lessonTitle.className = `font-bold block ${isActive ? 'text-brand-frost' : 'text-gray-300'}`;
+        const lessonNumber = btn.querySelector('[data-lesson-number]');
+        if (lessonNumber) lessonNumber.className = isActive ? 'text-brand-frost font-bold' : 'text-gray-500';
       });
     }
 
@@ -742,30 +780,248 @@
       })[character]);
     }
 
-    function getSafeCourseUrl(value) {
-      if (!value) return '';
+    function getBunnyStreamUrl(value) {
+      if (typeof value !== 'string' || !value.trim()) return '';
       try {
-        const url = new URL(value, window.location.href);
-        return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+        const url = new URL(value.trim());
+        const path = url.pathname.split('/').filter(Boolean);
+        const hasPlaceholderId = path.slice(1).some((part) => /^(YOUR_|LESSON_.*_ID|VIDEO_ID)/i.test(part));
+        if (
+          url.protocol !== 'https:' ||
+          !['iframe.mediadelivery.net', 'player.mediadelivery.net'].includes(url.hostname) ||
+          path.length !== 3 ||
+          path[0] !== 'embed' ||
+          hasPlaceholderId
+        ) return '';
+        return url.href;
       } catch {
         return '';
       }
     }
 
+    function setCourseVideo(videoUrl, title) {
+      const player = document.getElementById('videoPlayer');
+      const placeholder = document.getElementById('videoPlayerPlaceholder');
+      const status = document.getElementById('videoPlayerStatus');
+
+      player.title = title || 'Course video';
+      if (!videoUrl) {
+        player.removeAttribute('src');
+        player.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        status.textContent = title
+          ? `The video for "${title}" is not available yet.`
+          : 'Select a course lesson to start watching.';
+        return;
+      }
+
+      player.src = videoUrl;
+      player.classList.remove('hidden');
+      placeholder.classList.add('hidden');
+    }
+
+    async function loadCoursePreview() {
+      if (!currentCourse) return;
+      const requestId = ++courseMediaRequestId;
+      const courseId = String(currentCourse.id);
+      const previewTitle = `${currentCourse.title} preview`;
+      try {
+        const { data, error } = await window.supabaseClient.functions.invoke('course-content', {
+          body: { action: 'preview_video', courseId }
+        });
+        if (requestId !== courseMediaRequestId || currentCourse?.id?.toString() !== courseId) return;
+        if (error || !data?.videoUrl) {
+          console.error('Could not load course preview:', error || 'No preview URL was returned.');
+          setCourseVideo('', previewTitle);
+          document.getElementById('videoPlayerStatus').textContent = 'Course preview is not available yet.';
+          return;
+        }
+        const videoUrl = getBunnyStreamUrl(data.videoUrl);
+        if (!videoUrl) {
+          console.error('Course content function returned an invalid Bunny Stream preview URL.');
+          setCourseVideo('', previewTitle);
+          document.getElementById('videoPlayerStatus').textContent = 'Course preview could not be loaded.';
+          return;
+        }
+        setCourseVideo(videoUrl, previewTitle);
+      } catch (error) {
+        if (requestId !== courseMediaRequestId || currentCourse?.id?.toString() !== courseId) return;
+        console.error('Could not load course preview:', error);
+        setCourseVideo('', previewTitle);
+        document.getElementById('videoPlayerStatus').textContent = 'Course preview could not be loaded.';
+      }
+    }
+
+    async function resetToPublicCoursePreview() {
+      if (!currentCourse) return;
+      courseMediaRequestId += 1;
+      setCourseVideo('', `${currentCourse.title} preview`);
+      document.getElementById('videoPlayerStatus').textContent = 'Loading course preview...';
+      await loadCoursePreview();
+    }
+
+    function renderProtectedCourseContent(message) {
+      const curriculumContainer = document.getElementById('curriculumList');
+      const assetContainer = document.getElementById('assetList');
+      document.getElementById('curriculumMeta').textContent = hasCourseAccess
+        ? `${protectedCourseLessons.length} Lessons • ${currentCourse?.duration || 'Duration not set'} Total Duration`
+        : `Enrollment required • ${currentCourse?.duration || 'Duration not set'} Total Duration`;
+      curriculumContainer.innerHTML = protectedCourseLessons.length
+        ? protectedCourseLessons.map((lesson, index) => `
+          <button type="button" data-lesson-index="${index}" aria-pressed="false" class="w-full text-left p-3 rounded-2xl border border-gray-800 bg-black/30 text-gray-400 hover:border-gray-700 text-xs flex justify-between items-center transition-all cursor-pointer">
+            <div class="flex items-center space-x-3">
+              <span data-lesson-number class="text-gray-500">${String(lesson.id ?? index + 1).padStart(2, '0')}</span>
+              <div>
+                <span data-lesson-title class="font-bold block text-gray-300">${escapeCourseHtml(lesson.title || `Lesson ${index + 1}`)}</span>
+                <span class="text-[10px] text-gray-500">${escapeCourseHtml(lesson.duration || '')}</span>
+              </div>
+            </div>
+          </button>`).join('')
+        : `<p class="text-xs text-gray-500">${escapeCourseHtml(message || 'Course lessons will be added soon.')}</p>`;
+
+      curriculumContainer.querySelectorAll('[data-lesson-index]').forEach((button) => {
+        button.addEventListener('click', () => {
+          void playEnrolledLesson(Number(button.dataset.lessonIndex));
+        });
+      });
+
+      document.getElementById('assetCount').textContent = protectedCourseAssets.length;
+      assetContainer.innerHTML = protectedCourseAssets.length
+        ? protectedCourseAssets.map((asset, index) => `
+          <div class="p-4 bg-black/40 border border-gray-700 rounded-2xl flex items-center justify-between gap-4">
+            <div>
+              <span class="font-bold text-xs block text-brand-white">${escapeCourseHtml(asset.name || 'Course resource')}</span>
+              <span class="text-[10px] text-gray-400">${escapeCourseHtml(asset.size || '')}</span>
+            </div>
+            ${asset.available
+              ? `<button type="button" data-asset-index="${index}" class="bg-brand-frost text-brand-forest px-4 py-2 rounded-xl text-xs font-bold hover:bg-opacity-90 transition-all">Download</button>`
+              : '<span class="text-[10px] text-gray-500">File not yet in private course storage</span>'}
+          </div>`).join('')
+        : `<p class="text-xs text-gray-500">${escapeCourseHtml(message || 'No course resources added yet.')}</p>`;
+
+      assetContainer.querySelectorAll('[data-asset-index]').forEach((button) => {
+        button.addEventListener('click', () => {
+          void downloadEnrolledCourseAsset(Number(button.dataset.assetIndex), button);
+        });
+      });
+    }
+
+    function clearProtectedCourseContent(message) {
+      protectedCourseLessons = [];
+      protectedCourseAssets = [];
+      renderProtectedCourseContent(message);
+    }
+
+    async function loadProtectedCourseContent(requestId) {
+      try {
+        const result = await window.supabaseClient.functions.invoke('course-content', {
+          body: { action: 'list_content', courseId: String(currentCourse.id) }
+        });
+        if (requestId !== courseAccessRequestId || !currentUser || !hasCourseAccess) return;
+        if (result.error || !result.data) {
+          console.error('Could not load protected course content:', result.error || 'No content was returned.');
+          clearProtectedCourseContent('Course materials could not be loaded. Please try again.');
+          return;
+        }
+        protectedCourseLessons = Array.isArray(result.data.lessons) ? result.data.lessons : [];
+        protectedCourseAssets = Array.isArray(result.data.assets) ? result.data.assets : [];
+        renderProtectedCourseContent('');
+      } catch (error) {
+        if (requestId !== courseAccessRequestId || !currentUser || !hasCourseAccess) return;
+        console.error('Could not load protected course content:', error);
+        clearProtectedCourseContent('Course materials could not be loaded. Please try again.');
+      }
+    }
+
+    async function playEnrolledLesson(index) {
+      if (!currentCourse || !currentUser) {
+        openCourseAuthDrawer('login');
+        return;
+      }
+      if (!hasCourseAccess) {
+        document.getElementById('videoPlayerStatus').textContent = 'Enroll in this course to watch its lessons.';
+        return;
+      }
+      const lesson = protectedCourseLessons[index];
+      if (!lesson) return;
+      const userId = currentUser.id;
+      const requestId = ++courseMediaRequestId;
+      const status = document.getElementById('videoPlayerStatus');
+      status.textContent = 'Preparing lesson video...';
+      document.getElementById('videoPlayer').classList.add('hidden');
+      document.getElementById('videoPlayerPlaceholder').classList.remove('hidden');
+
+      let data;
+      let error;
+      try {
+        ({ data, error } = await window.supabaseClient.functions.invoke('course-content', {
+          body: { action: 'lesson_video', courseId: String(currentCourse.id), lessonIndex: index }
+        }));
+      } catch (requestError) {
+        if (requestId !== courseMediaRequestId) return;
+        console.error('Could not load lesson video:', requestError);
+        status.textContent = 'This lesson could not be loaded. Please try again.';
+        return;
+      }
+      if (requestId !== courseMediaRequestId || !hasCourseAccess || currentUser?.id !== userId) return;
+      if (error || !data?.videoUrl) {
+        console.error('Could not load lesson video:', error || 'No video URL was returned.');
+        status.textContent = 'This lesson could not be loaded. Please try again.';
+        return;
+      }
+      const videoUrl = getBunnyStreamUrl(data.videoUrl);
+      if (!videoUrl) {
+        console.error('Course content function returned an invalid Bunny Stream URL.');
+        status.textContent = 'This lesson could not be loaded. Please contact support.';
+        return;
+      }
+      playLesson(index, videoUrl, lesson.title || `Lesson ${index + 1}`);
+    }
+
+    async function downloadEnrolledCourseAsset(index, button) {
+      if (!currentCourse || !currentUser) {
+        openCourseAuthDrawer('login');
+        return;
+      }
+      if (!hasCourseAccess) return;
+      const userId = currentUser.id;
+      button.disabled = true;
+      button.textContent = 'Preparing...';
+      let data;
+      let error;
+      try {
+        ({ data, error } = await window.supabaseClient.functions.invoke('course-content', {
+          body: { action: 'download_asset', courseId: String(currentCourse.id), assetIndex: index }
+        }));
+      } catch (requestError) {
+        console.error('Could not create course download link:', requestError);
+        button.disabled = false;
+        button.textContent = 'Try again';
+        return;
+      }
+      if (!hasCourseAccess || currentUser?.id !== userId) {
+        button.disabled = false;
+        button.textContent = 'Download';
+        return;
+      }
+      if (error || !data?.url) {
+        console.error('Could not create course download link:', error || 'No download URL was returned.');
+        button.disabled = false;
+        button.textContent = 'Try again';
+        return;
+      }
+      window.location.assign(data.url);
+      button.disabled = false;
+      button.textContent = 'Download';
+    }
+
     function renderCourseDetails(course) {
       const priceKES = Number(course.price_kes ?? course.priceKES ?? course.price ?? 0);
       const priceUSD = Number(course.price_usd ?? course.priceUSD ?? 0);
-      const curriculum = Array.isArray(course.curriculum) ? course.curriculum : [];
-      const assets = Array.isArray(course.assets) ? course.assets : [];
-      const previewUrl = getSafeCourseUrl(course.preview_video_url || course.previewVideoUrl);
-
       currentCourse = {
         ...course,
         priceKES,
-        priceUSD,
-        previewVideoUrl: previewUrl,
-        curriculum,
-        assets
+        priceUSD
       };
 
       document.getElementById('pageTitle').textContent = `${course.title} | Called to Create`;
@@ -777,60 +1033,24 @@
       document.getElementById('coursePriceTag').textContent = priceUSD
         ? `KES ${priceKES.toLocaleString()} / $${priceUSD.toLocaleString()}`
         : `KES ${priceKES.toLocaleString()}`;
-      document.getElementById('curriculumMeta').textContent = `${curriculum.length} Lessons • ${course.duration || 'Duration not set'} Total Duration`;
-      document.getElementById('videoPlayer').src = previewUrl;
+      document.getElementById('curriculumMeta').textContent = `Enrollment required • ${course.duration || 'Duration not set'} Total Duration`;
+      setCourseVideo('', `${course.title} preview`);
+      document.getElementById('videoPlayerStatus').textContent = 'Loading course preview...';
 
-      const curriculumContainer = document.getElementById('curriculumList');
-      curriculumContainer.innerHTML = curriculum.length
-        ? curriculum.map((lesson, index) => `
-          <button type="button" data-lesson-index="${index}" class="w-full text-left p-3 rounded-2xl border ${index === 0 ? 'border-brand-frost bg-brand-forest text-brand-white' : 'border-gray-800 bg-black/30 text-gray-400 hover:border-gray-700'} text-xs flex justify-between items-center transition-all cursor-pointer">
-            <div class="flex items-center space-x-3">
-              <span class="${index === 0 ? 'text-brand-frost font-bold' : 'text-gray-500'}">${String(lesson.id ?? index + 1).padStart(2, '0')}</span>
-              <div>
-                <span class="font-bold block ${index === 0 ? 'text-brand-frost' : 'text-gray-300'}">${escapeCourseHtml(lesson.title || `Lesson ${index + 1}`)}</span>
-                <span class="text-[10px] text-gray-500">${escapeCourseHtml(lesson.duration || '')}</span>
-              </div>
-            </div>
-          </button>`).join('')
-        : '<p class="text-xs text-gray-500">Course lessons will be added soon.</p>';
-
-      curriculumContainer.querySelectorAll('[data-lesson-index]').forEach((button) => {
-        button.addEventListener('click', () => {
-          const index = Number(button.dataset.lessonIndex);
-          const lesson = curriculum[index];
-          playLesson(index, getSafeCourseUrl(lesson.video_url || lesson.videoUrl) || previewUrl);
-        });
-      });
-
-      const assetContainer = document.getElementById('assetList');
-      document.getElementById('assetCount').textContent = assets.length;
-      assetContainer.innerHTML = assets.length
-        ? assets.map((asset) => {
-          const assetUrl = getSafeCourseUrl(asset.url || asset.link || asset.download_url);
-          return `
-            <div class="p-4 bg-black/40 border border-gray-700 rounded-2xl flex items-center justify-between gap-4">
-              <div>
-                <span class="font-bold text-xs block text-brand-white">${escapeCourseHtml(asset.name || 'Course resource')}</span>
-                <span class="text-[10px] text-gray-400">${escapeCourseHtml(asset.size || '')}</span>
-              </div>
-              ${assetUrl
-                ? `<a href="${escapeCourseHtml(assetUrl)}" target="_blank" rel="noopener noreferrer" class="bg-brand-frost text-brand-forest px-4 py-2 rounded-xl text-xs font-bold hover:bg-opacity-90 transition-all">Download</a>`
-                : '<span class="text-[10px] text-gray-500">Link unavailable</span>'}
-            </div>`;
-        }).join('')
-        : '<p class="text-xs text-gray-500">No external downloads added yet.</p>';
+      clearProtectedCourseContent('Sign in and enroll to access lessons and course materials.');
     }
 
     async function loadCourseDetails(courseSlug) {
       const { data: course, error } = await window.supabaseClient
         .from('courses')
-        .select('*')
+        .select('id, slug, title, description, category, instructor, duration, price_kes, price_usd, is_published')
         .eq('slug', courseSlug)
         .eq('is_published', true)
         .maybeSingle();
 
       if (error || !course) {
         console.error('Could not load course details:', error || 'Course not found or unpublished.');
+        setCourseVideo('', '');
         document.getElementById('courseTitle').textContent = 'Course unavailable';
         document.getElementById('courseDescription').textContent = 'This course could not be found or is not currently published.';
         document.getElementById('curriculumList').innerHTML = '';
@@ -843,7 +1063,17 @@
 
     document.addEventListener("DOMContentLoaded", async () => {
       window.supabaseClient.auth.onAuthStateChange((event, session) => {
-        currentUser = session ? session.user : null;
+        const nextUser = session ? session.user : null;
+        const userChanged = currentUser?.id !== nextUser?.id;
+        currentUser = nextUser;
+        if (userChanged && currentCourse) {
+          hasCourseAccess = false;
+          courseAccessRequestId += 1;
+          courseMediaRequestId += 1;
+          clearProtectedCourseContent('Checking course enrollment...');
+          setCourseVideo('', `${currentCourse.title} preview`);
+          document.getElementById('videoPlayerStatus').textContent = 'Checking course access...';
+        }
         updateCourseNavForAuth(currentUser);
         void refreshCourseAccess();
       });
