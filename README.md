@@ -84,7 +84,9 @@ The function checks enrollment on every lesson-video and download request. It re
 
 ## Admin dashboard
 
-`admin.html` is an administrator-only operations dashboard for course, shop, enrollment, and Paystack order counts plus the latest ten order references and sampled Supabase query timings. Administrators can edit existing course and product records, including public course previews, protected lesson metadata, and private storage paths. Each save is applied with its audit entry in one database transaction. The dashboard does not expose customer emails, create or delete content, issue refunds, or call Paystack and Bunny APIs. The timing figures are per-request diagnostics, not historical site performance analytics.
+`admin.html` is an administrator-only dashboard for Supabase operations, course and shop content, Paystack orders/refunds, Bunny Stream videos, and monthly site/business insights. It does not expose customer contact details or provide an unrestricted SQL console. Course/product saves are atomic with their content-audit snapshots. Provider actions are recorded in `admin_action_audit`; full Paystack refunds require typing the exact payment reference, and Bunny video deletion requires typing the exact video ID. A processed refund changes the order to `refunded` and revokes Paystack-created access when no other paid order grants the same course. Pending refunds do not revoke access until Paystack confirms them.
+
+The dashboard's monthly reports retain up to 12 months of aggregated counts. Public-page telemetry records only an allowlisted page path and browser performance measurements; it does not store account IDs, visitor IDs, or query strings. Download metrics count successful signed-link issuance, not completed file transfers. Browser performance measurements are approximate and may be absent when a browser does not support the relevant APIs. Public telemetry is best-effort and should not be used as an authoritative billing or security record.
 
 To enable it:
 
@@ -95,11 +97,21 @@ To enable it:
    supabase secrets set ADMIN_USER_IDS=ADMIN_AUTH_USER_UUID
    ```
 
-3. Apply pending Supabase migrations in timestamp order. The admin content editor migration depends on the course private-content table from `20261111100000_protect_course_content.sql`.
-4. Ensure `ALLOWED_ORIGINS` includes the exact production site origin (scheme, hostname, and port, with no path). Deploy the dashboard function and publish `admin.html` with the rest of the site:
+3. Apply pending Supabase migrations in timestamp order. The admin content editor migration depends on `20261111100000_protect_course_content.sql`; the provider and analytics migration adds refund/audit tables and the monthly metrics RPC.
+4. Configure the provider credentials as server-only Edge Function secrets. `PAYSTACK_SECRET_KEY` is also used by checkout; `BUNNY_STREAM_LIBRARY_ID` and `BUNNY_STREAM_TOKEN_AUTH_KEY` are used by course streaming. Add the separate Bunny Stream library API key for the admin provider integration:
+
+   ```sh
+   supabase secrets set BUNNY_STREAM_API_KEY=YOUR_LIBRARY_API_KEY
+   ```
+
+5. Ensure `ALLOWED_ORIGINS` includes the exact deployed site origin (scheme, hostname, and port, with no path). Deploy the updated functions and static files:
 
    ```sh
    supabase functions deploy admin-dashboard
+   supabase functions deploy admin-bunny-upload
+   supabase functions deploy site-analytics
+   supabase functions deploy paystack-checkout
+   supabase functions deploy course-content
    ```
 
-The browser uses only the existing Supabase publishable key. Each dashboard request verifies the Supabase session with Supabase Auth, checks its user UUID against `ADMIN_USER_IDS`, and requires the verified JWT's `aal2` assurance claim before reading or editing data with the service-role key. The dashboard guides an administrator through TOTP enrollment when no verified authenticator exists and challenges an existing TOTP factor for later sign-ins. Database update functions are executable only by `service_role`; updates and audit snapshots are atomic. `verify_jwt = false` is intentional in `supabase/config.toml`: the function validates the bearer token with Supabase Auth itself, then applies the administrator allowlist and MFA requirement. Never add provider secrets to this static page.
+The browser uses only the existing Supabase publishable key. Each admin request verifies the Supabase session, checks its user UUID against `ADMIN_USER_IDS`, and requires the verified JWT's `aal2` assurance claim before using the service-role key or provider credentials. Bunny upload files are streamed through the protected Edge Function; verify the Supabase Edge Function request-size and duration limits with a representative video before relying on large uploads. `verify_jwt = false` is intentional for these functions: each function validates the bearer token itself where authentication is required. Never add service-role, Paystack, or Bunny API secrets to static pages.

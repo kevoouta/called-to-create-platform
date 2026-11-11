@@ -2,15 +2,28 @@ interface AdminRequest {
   action:
     | 'session_check'
     | 'overview'
+    | 'monthly_metrics'
     | 'content_list'
     | 'audit_list'
     | 'audit_detail'
     | 'save_course'
-    | 'save_product';
+    | 'save_product'
+    | 'paystack_orders'
+    | 'paystack_reconcile'
+    | 'paystack_refund'
+    | 'provider_audit'
+    | 'bunny_overview'
+    | 'bunny_create_video'
+    | 'bunny_update_video'
+    | 'bunny_delete_video';
   entityId?: string;
   auditId?: number;
   fields?: unknown;
   privateContent?: unknown;
+  orderId?: string;
+  confirmation?: string;
+  videoId?: string;
+  title?: string;
 }
 
 type JsonRecord = Record<string, unknown>;
@@ -54,6 +67,9 @@ class HttpError extends Error {
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
 const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
+const bunnyStreamApiKey = Deno.env.get('BUNNY_STREAM_API_KEY');
+const bunnyStreamLibraryId = Deno.env.get('BUNNY_STREAM_LIBRARY_ID');
 const adminUserIds = new Set(
   (Deno.env.get('ADMIN_USER_IDS') ?? '')
     .split(',')
@@ -152,6 +168,385 @@ async function adminJsonRequest(path: string, init?: RequestInit) {
     throw new Error(`Supabase request failed (${result.status}): ${text}`);
   }
   return text ? JSON.parse(text) : null;
+}
+
+function requireSecret(value: string | undefined, name: string) {
+  if (!value) {
+    throw new HttpError(`Provider integration is not configured. Missing ${name}.`, 503);
+  }
+  return value;
+}
+
+async function paystackRequest(path: string, init?: RequestInit) {
+  const result = await fetch(`https://api.paystack.co${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${requireSecret(paystackSecretKey, 'PAYSTACK_SECRET_KEY')}`,
+      'Content-Type': 'application/json',
+      ...init?.headers,
+    },
+  });
+  let payload: JsonRecord;
+  try {
+    payload = await result.json();
+  } catch {
+    throw new Error(`Paystack returned an invalid response (${result.status}).`);
+  }
+  if (!result.ok || payload.status !== true) {
+    throw new HttpError(
+      typeof payload.message === 'string'
+        ? `Paystack rejected the request: ${payload.message}`
+        : `Paystack request failed (${result.status}).`,
+      result.status >= 400 && result.status < 500 ? 400 : 502,
+    );
+  }
+  return payload.data as JsonRecord;
+}
+
+async function bunnyRequest(path: string, init?: RequestInit) {
+  const libraryId = requireSecret(bunnyStreamLibraryId, 'BUNNY_STREAM_LIBRARY_ID');
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(libraryId)) {
+    throw new Error('BUNNY_STREAM_LIBRARY_ID is invalid.');
+  }
+  const result = await fetch(`https://video.bunnycdn.com/library/${libraryId}${path}`, {
+    ...init,
+    headers: {
+      AccessKey: requireSecret(bunnyStreamApiKey, 'BUNNY_STREAM_API_KEY'),
+      'Content-Type': 'application/json',
+      ...init?.headers,
+    },
+  });
+  const text = await result.text();
+  let payload: unknown = null;
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      if (result.ok) throw new Error('Bunny Stream returned an invalid response.');
+    }
+  }
+  if (!result.ok) {
+    throw new HttpError(
+      `Bunny Stream request failed (${result.status}).`,
+      result.status >= 400 && result.status < 500 ? 400 : 502,
+    );
+  }
+  return payload;
+}
+
+async function startProviderAudit(
+  userId: string,
+  provider: 'paystack' | 'bunny',
+  action: string,
+  targetId: string,
+  details: JsonRecord = {},
+) {
+  const rows = await adminJsonRequest('admin_action_audit?select=id', {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify([{
+      actor_id: userId,
+      provider,
+      action,
+      target_id: targetId,
+      status: 'pending',
+      details,
+    }]),
+  });
+  if (!Array.isArray(rows) || typeof rows[0]?.id !== 'number') {
+    throw new Error('Could not create the provider action audit entry.');
+  }
+  return rows[0].id as number;
+}
+
+async function finishProviderAudit(
+  auditId: number,
+  status: 'succeeded' | 'failed',
+  details: JsonRecord = {},
+) {
+  const query = new URLSearchParams({ id: `eq.${auditId}` });
+  await adminJsonRequest(`admin_action_audit?${query}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status, details, updated_at: new Date().toISOString() }),
+  });
+}
+
+async function getPaystackOrders() {
+  const [orders, refunds] = await Promise.all([
+    adminJsonRequest(
+      'payment_orders?select=id,reference,item_type,amount_minor,currency,status,created_at,paid_at,paystack_transaction_id&order=created_at.desc&limit=50',
+    ),
+    adminJsonRequest(
+      'admin_payment_refunds?select=id,order_id,amount_minor,status,paystack_refund_id,created_at,updated_at&order=created_at.desc&limit=100',
+    ),
+  ]);
+  if (!Array.isArray(orders) || !Array.isArray(refunds)) {
+    throw new Error('Supabase returned invalid payment operations data.');
+  }
+  const refundsByOrderId = new Map<string, JsonRecord>();
+  for (const refund of refunds) {
+    const orderId = String(refund.order_id);
+    if (!refundsByOrderId.has(orderId)) refundsByOrderId.set(orderId, refund);
+  }
+  return {
+    orders: orders.map((order) => ({
+      ...order,
+      refund: refundsByOrderId.get(String(order.id)) ?? null,
+    })),
+  };
+}
+
+async function getPaymentOrder(orderId: string) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId)) {
+    throw new HttpError('Invalid payment order.', 400);
+  }
+  const query = new URLSearchParams({
+    select: 'id,reference,amount_minor,currency,status,paystack_transaction_id',
+    id: `eq.${orderId}`,
+    limit: '1',
+  });
+  const rows = await adminJsonRequest(`payment_orders?${query}`);
+  if (!Array.isArray(rows) || !rows[0]) throw new HttpError('Payment order not found.', 404);
+  return rows[0] as JsonRecord;
+}
+
+async function reconcilePaystackOrder(orderId: string) {
+  const order = await getPaymentOrder(orderId);
+  if (typeof order.reference !== 'string') throw new Error('Payment order reference is invalid.');
+  const transaction = await paystackRequest(
+    `/transaction/verify/${encodeURIComponent(order.reference)}`,
+  );
+  const matches = transaction.status === 'success' &&
+    String(transaction.reference) === order.reference &&
+    Number(transaction.amount) === Number(order.amount_minor) &&
+    transaction.currency === order.currency &&
+    String(transaction.id) === String(order.paystack_transaction_id) &&
+    (order.status === 'paid' || order.status === 'refunded');
+  return {
+    orderId,
+    reference: order.reference,
+    localStatus: order.status,
+    providerStatus: typeof transaction.status === 'string' ? transaction.status : 'unknown',
+    matches,
+    amountMinor: Number(transaction.amount) || 0,
+    currency: typeof transaction.currency === 'string' ? transaction.currency : '',
+  };
+}
+
+async function requestPaystackRefund(userId: string, body: AdminRequest) {
+  const orderId = typeof body.orderId === 'string' ? body.orderId : '';
+  const order = await getPaymentOrder(orderId);
+  if (body.confirmation !== order.reference) {
+    throw new HttpError('Type the exact payment reference to confirm the full refund.', 400);
+  }
+  if (order.status !== 'paid' || typeof order.reference !== 'string') {
+    throw new HttpError('Only paid orders can be refunded.', 409);
+  }
+  const verified = await paystackRequest(
+    `/transaction/verify/${encodeURIComponent(order.reference)}`,
+  );
+  if (
+    verified.status !== 'success' ||
+    String(verified.reference) !== order.reference ||
+    Number(verified.amount) !== Number(order.amount_minor) ||
+    verified.currency !== order.currency ||
+    String(verified.id) !== String(order.paystack_transaction_id)
+  ) {
+    throw new HttpError('The provider transaction does not match the paid order.', 409);
+  }
+
+  const refundRequest = await adminJsonRequest('rpc/admin_begin_payment_refund', {
+    method: 'POST',
+    body: JSON.stringify({ p_actor_id: userId, p_order_id: orderId }),
+  });
+  if (
+    !refundRequest ||
+    typeof refundRequest.audit_id !== 'number' ||
+    typeof refundRequest.refund_id !== 'number'
+  ) {
+    throw new Error('Could not record the refund request before contacting Paystack.');
+  }
+
+  try {
+    const refund = await paystackRequest('/refund', {
+      method: 'POST',
+      body: JSON.stringify({
+        transaction: Number(order.paystack_transaction_id),
+        merchant_note: 'Full refund requested from the authenticated admin dashboard.',
+      }),
+    });
+    const refundStatus = refund.status === 'processed'
+      ? 'processed'
+      : refund.status === 'failed'
+      ? 'failed'
+      : 'pending';
+    await adminJsonRequest('rpc/admin_update_payment_refund', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_refund_record_id: refundRequest.refund_id,
+        p_status: refundStatus,
+        p_paystack_refund_id: refund.id == null ? null : String(refund.id),
+        p_error_message: refundStatus === 'failed' ? 'Paystack reported a failed refund.' : null,
+      }),
+    });
+    return { requested: true, status: refundStatus, reference: order.reference };
+  } catch (error) {
+    if (error instanceof HttpError && error.status === 400) {
+      await adminJsonRequest('rpc/admin_update_payment_refund', {
+        method: 'POST',
+        body: JSON.stringify({
+          p_refund_record_id: refundRequest.refund_id,
+          p_status: 'failed',
+          p_error_message: error.message.slice(0, 1000),
+        }),
+      });
+      await finishProviderAudit(refundRequest.audit_id, 'failed');
+      throw error;
+    }
+    console.error('Paystack refund outcome is not confirmed; the request remains pending:', error);
+    throw new HttpError(
+      'The refund status could not be safely finalized. The request is recorded; reconcile it with Paystack before taking further action.',
+      502,
+    );
+  }
+}
+
+async function getBunnyOverview() {
+  const [videoPage, encodingResult] = await Promise.allSettled([
+    bunnyRequest('/videos?page=1&itemsPerPage=100'),
+    bunnyRequest(`/statistics/encoding?dateFrom=${encodeURIComponent(
+      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    )}&dateTo=${encodeURIComponent(new Date().toISOString())}`),
+  ]);
+  if (videoPage.status === 'rejected') throw videoPage.reason;
+  const page = videoPage.value as JsonRecord;
+  if (!Array.isArray(page.items) || typeof page.totalItems !== 'number') {
+    throw new Error('Bunny Stream returned an invalid video list.');
+  }
+  const videos = page.items;
+  const encoding = encodingResult.status === 'fulfilled' &&
+      encodingResult.value && typeof encodingResult.value === 'object'
+    ? encodingResult.value
+    : null;
+  return {
+    totalVideos: page.totalItems,
+    page: Number(page.currentPage) || 1,
+    videos: videos.map((video) => {
+      const item = video as JsonRecord;
+      return {
+        id: item.guid,
+        title: item.title,
+        status: item.status,
+        length: item.length,
+        views: item.views,
+        storageSize: item.storageSize,
+        encodeProgress: item.encodeProgress,
+        dateUploaded: item.dateUploaded,
+        averageWatchTime: item.averageWatchTime,
+      };
+    }),
+    encoding,
+    encodingError: encodingResult.status === 'rejected' || !encoding
+      ? 'Encoding statistics are unavailable from Bunny Stream for this request.'
+      : null,
+  };
+}
+
+async function runBunnyAction<T>(
+  userId: string,
+  action: string,
+  targetId: string,
+  details: JsonRecord,
+  operation: () => Promise<T>,
+) {
+  const auditId = await startProviderAudit(userId, 'bunny', action, targetId, details);
+  let result: T;
+  try {
+    result = await operation();
+  } catch (error) {
+    if (error instanceof HttpError && error.status === 400) {
+      try {
+        await finishProviderAudit(auditId, 'failed', details);
+      } catch (auditError) {
+        console.error('Could not update Bunny action audit status:', auditError);
+      }
+      throw error;
+    }
+    console.error('Bunny Stream action outcome is not confirmed:', error);
+    throw new HttpError(
+      'Bunny Stream did not confirm the action outcome. Check the library before retrying.',
+      502,
+    );
+  }
+  try {
+    await finishProviderAudit(auditId, 'succeeded', details);
+  } catch (error) {
+    console.error('Bunny Stream action completed but its audit status could not be updated:', error);
+    throw new HttpError(
+      'The Bunny Stream action completed, but its audit status could not be updated. Verify the library before retrying.',
+      502,
+    );
+  }
+  return result;
+}
+
+async function createBunnyVideo(userId: string, value: unknown) {
+  const fields = requireRecord({ title: value }, 'Video');
+  const title = validateText(fields, 'title', 'Video title', 160, true);
+  return await runBunnyAction(userId, 'create_video', title, {}, async () => {
+    const result = await bunnyRequest('/videos', {
+      method: 'POST',
+      body: JSON.stringify({ title }),
+    });
+    if (!result || typeof result !== 'object' || Array.isArray(result)) {
+      throw new Error('Bunny Stream created a video record but returned an invalid response.');
+    }
+    const video = result as JsonRecord;
+    if (typeof video.guid !== 'string' || typeof video.title !== 'string') {
+      throw new Error('Bunny Stream created a video record but did not return its identifier.');
+    }
+    return { id: video.guid, title: video.title };
+  });
+}
+
+async function updateBunnyVideo(userId: string, body: AdminRequest) {
+  const videoId = typeof body.videoId === 'string' &&
+    /^[A-Za-z0-9-]{1,128}$/.test(body.videoId)
+    ? body.videoId
+    : '';
+  if (!videoId) throw new HttpError('Invalid Bunny Stream video ID.', 400);
+  const fields = requireRecord({ title: body.title }, 'Video');
+  const title = validateText(fields, 'title', 'Video title', 160, true);
+  return await runBunnyAction(userId, 'update_video', videoId, { title }, async () => {
+    await bunnyRequest(`/videos/${encodeURIComponent(videoId)}`, {
+      method: 'POST',
+      body: JSON.stringify({ title }),
+    });
+    return { updated: true, id: videoId, title };
+  });
+}
+
+async function deleteBunnyVideo(userId: string, body: AdminRequest) {
+  const videoId = typeof body.videoId === 'string' &&
+    /^[A-Za-z0-9-]{1,128}$/.test(body.videoId)
+    ? body.videoId
+    : '';
+  if (!videoId || body.confirmation !== videoId) {
+    throw new HttpError('Type the exact video ID to confirm deletion.', 400);
+  }
+  return await runBunnyAction(userId, 'delete_video', videoId, {}, async () => {
+    await bunnyRequest(`/videos/${encodeURIComponent(videoId)}`, { method: 'DELETE' });
+    return { deleted: true, id: videoId };
+  });
+}
+
+async function getMonthlyMetrics() {
+  const result = await adminJsonRequest('rpc/admin_monthly_dashboard_metrics', {
+    method: 'POST',
+    body: JSON.stringify({ p_months: 12 }),
+  });
+  if (!Array.isArray(result)) throw new Error('Supabase returned invalid monthly analytics.');
+  return { months: result };
 }
 
 function requireRecord(value: unknown, label: string): JsonRecord {
@@ -429,6 +824,14 @@ async function getAuditDetail(value: unknown) {
   return result[0];
 }
 
+async function getProviderAudit() {
+  const result = await adminJsonRequest(
+    'admin_action_audit?select=id,actor_id,provider,action,target_id,status,details,created_at,updated_at&order=created_at.desc&limit=100',
+  );
+  if (!Array.isArray(result)) throw new Error('Supabase returned an invalid provider audit log.');
+  return result;
+}
+
 async function saveCourse(userId: string, body: AdminRequest) {
   const courseId = validateEntityId(body.entityId);
   const fields = validateCourseFields(body.fields);
@@ -504,7 +907,23 @@ async function getRecentOrders() {
   return { orders, durationMs };
 }
 
+async function recordAdminMetric(metric: string, value: number) {
+  try {
+    await adminJsonRequest('rpc/record_site_monthly_metric', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_metric_key: metric,
+        p_route: '/admin.html',
+        p_value: value,
+      }),
+    });
+  } catch (error) {
+    console.error(`Could not record admin ${metric} metric:`, error);
+  }
+}
+
 async function getOverview() {
+  const startedAt = performance.now();
   const [
     courses,
     products,
@@ -513,6 +932,7 @@ async function getOverview() {
     paidOrders,
     pendingOrders,
     failedOrders,
+    refundedOrders,
     recentOrders,
   ] = await Promise.all([
     getExactCount('courses'),
@@ -522,7 +942,24 @@ async function getOverview() {
     getExactCount('payment_orders', { status: 'eq.paid' }),
     getExactCount('payment_orders', { status: 'eq.pending' }),
     getExactCount('payment_orders', { status: 'eq.failed' }),
+    getExactCount('payment_orders', { status: 'eq.refunded' }),
     getRecentOrders(),
+  ]);
+
+  const databaseQueryMs = {
+    courses: courses.durationMs,
+    products: products.durationMs,
+    enrollments: enrollments.durationMs,
+    orders: orders.durationMs,
+    paidOrders: paidOrders.durationMs,
+    pendingOrders: pendingOrders.durationMs,
+    failedOrders: failedOrders.durationMs,
+    refundedOrders: refundedOrders.durationMs,
+    recentOrders: recentOrders.durationMs,
+  };
+  await Promise.all([
+    recordAdminMetric('supabase_query_ms', Math.max(...Object.values(databaseQueryMs))),
+    recordAdminMetric('admin_function_ms', performance.now() - startedAt),
   ]);
 
   return {
@@ -535,20 +972,12 @@ async function getOverview() {
       paidOrders: paidOrders.count,
       pendingOrders: pendingOrders.count,
       failedOrders: failedOrders.count,
+      refundedOrders: refundedOrders.count,
     },
     recentOrders: recentOrders.orders,
     diagnostics: {
       database: 'available',
-      databaseQueryMs: {
-        courses: courses.durationMs,
-        products: products.durationMs,
-        enrollments: enrollments.durationMs,
-        orders: orders.durationMs,
-        paidOrders: paidOrders.durationMs,
-        pendingOrders: pendingOrders.durationMs,
-        failedOrders: failedOrders.durationMs,
-        recentOrders: recentOrders.durationMs,
-      },
+      databaseQueryMs,
     },
   };
 }
@@ -592,11 +1021,20 @@ async function handleRequest(request: Request) {
       ![
         'session_check',
         'overview',
+        'monthly_metrics',
         'content_list',
         'audit_list',
         'audit_detail',
         'save_course',
         'save_product',
+        'paystack_orders',
+        'paystack_reconcile',
+        'paystack_refund',
+        'provider_audit',
+        'bunny_overview',
+        'bunny_create_video',
+        'bunny_update_video',
+        'bunny_delete_video',
       ].includes(body.action)
     ) {
       throw new HttpError('Unsupported dashboard action.', 400);
@@ -615,17 +1053,57 @@ async function handleRequest(request: Request) {
       throw new HttpError('Complete multi-factor authentication to continue.', 403);
     }
 
-    const result = body.action === 'overview'
-      ? await getOverview()
-      : body.action === 'content_list'
-      ? await getContentList()
-      : body.action === 'audit_list'
-      ? await getAuditLog()
-      : body.action === 'audit_detail'
-      ? await getAuditDetail(body.auditId)
-      : body.action === 'save_course'
-      ? await saveCourse(user.id, body)
-      : await saveProduct(user.id, body);
+    let result: unknown;
+    switch (body.action) {
+      case 'overview':
+        result = await getOverview();
+        break;
+      case 'monthly_metrics':
+        result = await getMonthlyMetrics();
+        break;
+      case 'content_list':
+        result = await getContentList();
+        break;
+      case 'audit_list':
+        result = await getAuditLog();
+        break;
+      case 'audit_detail':
+        result = await getAuditDetail(body.auditId);
+        break;
+      case 'save_course':
+        result = await saveCourse(user.id, body);
+        break;
+      case 'save_product':
+        result = await saveProduct(user.id, body);
+        break;
+      case 'paystack_orders':
+        result = await getPaystackOrders();
+        break;
+      case 'paystack_reconcile':
+        if (typeof body.orderId !== 'string') throw new HttpError('Select a payment order.', 400);
+        result = await reconcilePaystackOrder(body.orderId);
+        break;
+      case 'paystack_refund':
+        result = await requestPaystackRefund(user.id, body);
+        break;
+      case 'provider_audit':
+        result = await getProviderAudit();
+        break;
+      case 'bunny_overview':
+        result = await getBunnyOverview();
+        break;
+      case 'bunny_create_video':
+        result = await createBunnyVideo(user.id, body.title);
+        break;
+      case 'bunny_update_video':
+        result = await updateBunnyVideo(user.id, body);
+        break;
+      case 'bunny_delete_video':
+        result = await deleteBunnyVideo(user.id, body);
+        break;
+      default:
+        throw new HttpError('Unsupported dashboard action.', 400);
+    }
     return jsonResponse(result, 200, origin);
   } catch (error) {
     if (error instanceof HttpError) {

@@ -30,6 +30,7 @@
       }
     }
   </script>
+  <script src="site-analytics.js" defer></script>
 </head>
 <body class="bg-brand-forest text-brand-white font-sans antialiased selection:bg-brand-frost selection:text-brand-forest min-h-screen flex flex-col relative bg-[url('Background.png')] bg-repeat bg-center">
 
@@ -65,7 +66,7 @@
     <div class="border-b border-gray-800 pb-6 space-y-3">
       <span class="text-xs text-brand-frost font-bold uppercase tracking-widest block font-sans">Data & Security</span>
       <h1 class="text-4xl md:text-5xl font-heading tracking-wide text-brand-white">Privacy Policy</h1>
-      <p class="text-xs text-gray-400 font-sans">Last updated: September 2026</p>
+      <p class="text-xs text-gray-400 font-sans">Last updated: November 2026</p>
     </div>
 
     <div class="space-y-8 text-xs md:text-sm text-gray-300 font-sans leading-relaxed">
@@ -78,6 +79,7 @@
           <li><strong>Account Identity:</strong> Your full name and email address provided during account creation.</li>
           <li><strong>Transaction Records:</strong> Billing details associated with Paystack (M-Pesa numbers, payment confirmations). We do not directly store full payment card numbers on our servers.</li>
           <li><strong>Platform Progress:</strong> Lesson completion metrics, saved asset downloads, and progress states within your account.</li>
+          <li><strong>Anonymous Site Metrics:</strong> Page paths and aggregated browser performance measurements (such as page-load timing and layout stability). These metrics are not linked to an account and do not use advertising cookies or persistent visitor IDs.</li>
         </ul>
       </section>
 
@@ -95,8 +97,9 @@
         </p>
         <ul class="list-disc pl-5 space-y-2 text-gray-400">
           <li><strong>Paystack:</strong> Payment gateway handling card processing and M-Pesa checkout workflows.</li>
-          <li><strong>Analytics & Infrastructure:</strong> Internal telemetry used exclusively to monitor video playback stability and platform uptime.</li>
+          <li><strong>Analytics & Infrastructure:</strong> Aggregated first-party page-usage, download-link, and browser-performance metrics used to improve the site, alongside service diagnostics from Supabase, Paystack, and Bunny Stream.</li>
         </ul>
+        <p>Site metrics omit account IDs, visitor IDs, and URL query strings. Page views and successful download-link issuances are aggregated by page and month; monthly summaries are retained for up to 12 months. A download-link metric records that a secure link was issued, not that a file transfer completed.</p>
       </section>
 
       <section class="space-y-3">

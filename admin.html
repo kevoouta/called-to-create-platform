@@ -197,6 +197,20 @@
     #overviewSection > .panel { margin-bottom: 1.75rem; }
     #overviewSection > .panel > p { margin-bottom: 0; font-size: .85rem; }
     #overviewSection > p:last-child { margin-top: 1.5rem; }
+    .confirm-dialog { width: min(94vw, 32rem); border: 1px solid var(--border); border-radius: 1.25rem; padding: 1.5rem; color: #fff; background: var(--panel); }
+    .confirm-dialog::backdrop { background: rgb(0 0 0 / 75%); }
+    .confirm-dialog form { display: grid; gap: 1rem; }
+    .confirm-dialog p { margin: 0; }
+    .dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .75rem; }
+    .button-secondary { border: 1px solid #59615a; background: #292d29; color: #fff; }
+    .button-danger { background: #a63e36; color: #fff; }
+    .button-danger:hover:not(:disabled) { background: #c14c42; }
+    .provider-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; }
+    .provider-toolbar label { display: grid; flex: 1; min-width: 14rem; gap: .4rem; color: #d1d8c0; font-size: .85rem; }
+    .metric-caption { display: block; margin-top: .3rem; color: var(--muted); font-size: .72rem; }
+    .table-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
+    .table-actions button { padding: .5rem .7rem; font-size: .78rem; }
+    .provider-status { min-height: 1.5rem; }
     [hidden] { display: none !important; }
     @media (max-width: 680px) {
       header { min-height: 4.5rem; padding-inline: 1rem; }
@@ -272,8 +286,11 @@
       <p id="dashboardStatus" class="notice" role="status"></p>
       <nav class="tabs" aria-label="Admin dashboard sections">
         <button type="button" data-admin-tab="overview" aria-pressed="true">Overview</button>
+        <button type="button" data-admin-tab="analytics" aria-pressed="false">Monthly insights</button>
         <button type="button" data-admin-tab="courses" aria-pressed="false">Courses</button>
         <button type="button" data-admin-tab="products" aria-pressed="false">Shop products</button>
+        <button type="button" data-admin-tab="paystack" aria-pressed="false">Paystack</button>
+        <button type="button" data-admin-tab="bunny" aria-pressed="false">Bunny Stream</button>
         <button type="button" data-admin-tab="audit" aria-pressed="false">Audit log</button>
       </nav>
 
@@ -389,9 +406,100 @@
           <h3>Before / after snapshot</h3>
           <pre id="auditDetailContent" class="audit-detail"></pre>
         </section>
+        <div class="section-heading">
+          <div>
+            <h2>Provider action log</h2>
+            <p class="muted">Recent Paystack and Bunny Stream operations performed from this dashboard.</p>
+          </div>
+          <button type="button" id="providerAuditRefreshButton">Refresh provider log</button>
+        </div>
+        <p id="providerAuditStatus" class="notice" role="status">Load provider actions to begin.</p>
+        <div class="panel table-wrap">
+          <table>
+            <thead><tr><th>Changed</th><th>Provider</th><th>Action</th><th>Target</th><th>Status</th></tr></thead>
+            <tbody id="providerAuditBody"><tr><td class="muted" colspan="5">No data loaded.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="analyticsSection" data-admin-section="analytics" hidden>
+        <div class="section-heading">
+          <div>
+            <h2>Monthly insights</h2>
+            <p class="muted">Aggregated business metrics and anonymous browser usage/performance. No user-level tracking.</p>
+          </div>
+          <button type="button" id="analyticsRefreshButton">Refresh insights</button>
+        </div>
+        <p id="analyticsStatus" class="notice provider-status" role="status">Load monthly insights to begin.</p>
+        <div class="panel table-wrap">
+          <table>
+            <thead>
+              <tr><th>Month</th><th>Orders</th><th>Paid</th><th>Course orders</th><th>Shop orders</th><th>Refunded</th><th>Success rate</th><th>Net sales (KES)</th><th>Refunds (KES)</th><th>Page views</th><th>Course download links</th><th>Shop download links</th><th>Avg LCP</th><th>Avg CLS</th><th>Avg max interaction (approx. INP)</th><th>Avg TTFB</th><th>Avg FCP</th><th>Avg Supabase query</th><th>Avg admin function</th></tr>
+            </thead>
+            <tbody id="analyticsBody"><tr><td class="muted" colspan="19">No data loaded.</td></tr></tbody>
+          </table>
+        </div>
+        <p class="muted">Browser performance samples are aggregated by month and page path. Metrics are approximate and reflect visitors whose browsers support the relevant Performance APIs.</p>
+      </section>
+
+      <section id="paystackSection" data-admin-section="paystack" hidden>
+        <div class="section-heading">
+          <div>
+            <h2>Paystack payments</h2>
+            <p class="muted">Inspect local payment orders and reconcile their status with Paystack. Full refunds require typing the exact payment reference.</p>
+          </div>
+          <button type="button" id="paystackRefreshButton">Refresh payments</button>
+        </div>
+        <p id="paystackStatus" class="notice provider-status" role="status">Load payment orders to begin.</p>
+        <div class="panel table-wrap">
+          <table>
+            <thead><tr><th>Reference</th><th>Created</th><th>Type</th><th>Amount</th><th>Order status</th><th>Refund status</th><th>Actions</th></tr></thead>
+            <tbody id="paystackOrdersBody"><tr><td class="muted" colspan="7">No data loaded.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="bunnySection" data-admin-section="bunny" hidden>
+        <div class="section-heading">
+          <div>
+            <h2>Bunny Stream library</h2>
+            <p class="muted">View video processing and usage data, create video records, update titles, and delete videos with exact-ID confirmation.</p>
+          </div>
+          <button type="button" id="bunnyRefreshButton">Refresh library</button>
+        </div>
+        <p id="bunnyStatus" class="notice provider-status" role="status">Load Bunny Stream data to begin.</p>
+        <section class="panel">
+          <h3>Encoding statistics · last 30 days</h3>
+          <pre id="bunnyEncodingStats" class="audit-detail">No data loaded.</pre>
+        </section>
+        <form id="bunnyCreateForm" class="panel provider-toolbar">
+          <label>New video title<input id="bunnyVideoTitle" maxlength="160" required></label>
+          <button type="submit">Create video record</button>
+        </form>
+        <div class="section-heading"><h2>Library videos</h2><span id="bunnyVideoCount" class="muted"></span></div>
+        <div class="panel table-wrap">
+          <table>
+            <thead><tr><th>Title</th><th>Status</th><th>Progress</th><th>Views</th><th>Duration</th><th>Storage</th><th>Uploaded</th><th>Actions</th></tr></thead>
+            <tbody id="bunnyVideosBody"><tr><td class="muted" colspan="8">No data loaded.</td></tr></tbody>
+          </table>
+        </div>
       </section>
     </section>
   </main>
+
+  <dialog id="refundDialog" class="confirm-dialog" aria-labelledby="refundDialogTitle">
+    <form id="refundForm">
+      <h2 id="refundDialogTitle">Confirm full refund</h2>
+      <p class="muted">This sends a full refund request to Paystack. Type the exact payment reference to continue.</p>
+      <code id="refundReference" class="mfa-secret"></code>
+      <label>Payment reference<input id="refundConfirmationInput" autocomplete="off" required></label>
+      <p id="refundDialogStatus" class="notice" role="status"></p>
+      <div class="dialog-actions">
+        <button id="cancelRefundButton" class="button-secondary" type="button">Cancel</button>
+        <button id="confirmRefundButton" class="button-danger" type="submit">Issue full refund</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -405,7 +513,8 @@
       ['orders', 'Payment orders'],
       ['paidOrders', 'Paid orders'],
       ['pendingOrders', 'Pending orders'],
-      ['failedOrders', 'Failed orders']
+      ['failedOrders', 'Failed orders'],
+      ['refundedOrders', 'Refunded orders']
     ];
     let contentRecords = null;
     let selectedCourseId = null;
@@ -415,6 +524,7 @@
     let pendingMfaFactorId = null;
     let pendingMfaChallengeId = null;
     let mfaQrObjectUrl = null;
+    let pendingRefundOrder = null;
 
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
       '&': '&amp;',
@@ -621,6 +731,13 @@
         void loadContentRecords();
       } else if (section === 'audit') {
         void loadAuditLog();
+        void loadProviderAudit();
+      } else if (section === 'analytics') {
+        void loadMonthlyMetrics();
+      } else if (section === 'paystack') {
+        void loadPaystackOrders();
+      } else if (section === 'bunny') {
+        void loadBunnyOverview();
       }
     }
 
@@ -825,6 +942,331 @@
       }
     }
 
+    async function loadProviderAudit() {
+      const status = document.getElementById('providerAuditStatus');
+      status.textContent = 'Loading provider actions...';
+      status.className = 'notice provider-status';
+      try {
+        const entries = await invokeAdmin('provider_audit');
+        document.getElementById('providerAuditBody').innerHTML = entries.length
+          ? entries.map((entry) => `
+            <tr>
+              <td>${escapeHtml(new Date(entry.created_at).toLocaleString())}</td>
+              <td>${escapeHtml(entry.provider)}</td>
+              <td>${escapeHtml(entry.action)}</td>
+              <td>${escapeHtml(entry.target_id)}</td>
+              <td class="status">${escapeHtml(entry.status)}</td>
+            </tr>`).join('')
+          : '<tr><td class="muted" colspan="5">No provider actions recorded.</td></tr>';
+        status.textContent = 'Provider action log loaded.';
+      } catch (error) {
+        console.error('Could not load provider action log:', error);
+        status.textContent = error.message || 'Could not load provider action log.';
+        status.className = 'notice provider-status error';
+      }
+    }
+
+    function metricValue(siteMetrics, metricName) {
+      const matching = siteMetrics.filter((metric) => metric.metric === metricName);
+      const samples = matching.reduce((total, metric) => total + Number(metric.samples || 0), 0);
+      if (['page_view', 'course_download_link', 'shop_download_link'].includes(metricName)) {
+        return samples.toLocaleString();
+      }
+      if (!samples) return '—';
+      const weightedAverage = matching.reduce(
+        (total, metric) => total + Number(metric.average || 0) * Number(metric.samples || 0),
+        0,
+      ) / samples;
+      return `${weightedAverage.toFixed(metricName === 'cls' ? 3 : 0)}${metricName === 'cls' ? '' : ' ms'}`;
+    }
+
+    async function loadMonthlyMetrics() {
+      const status = document.getElementById('analyticsStatus');
+      status.textContent = 'Loading monthly insights...';
+      status.className = 'notice provider-status';
+      try {
+        const result = await invokeAdmin('monthly_metrics');
+        const months = Array.isArray(result?.months) ? result.months : [];
+        document.getElementById('analyticsBody').innerHTML = months.length
+          ? months.map((month) => {
+            const siteMetrics = Array.isArray(month.siteMetrics) ? month.siteMetrics : [];
+            return `
+              <tr>
+                <td>${escapeHtml(month.month)}</td>
+                <td>${Number(month.totalOrders || 0).toLocaleString()}</td>
+                <td>${Number(month.paidOrders || 0).toLocaleString()}</td>
+                <td>${Number(month.courseOrders || 0).toLocaleString()}</td>
+                <td>${Number(month.shopOrders || 0).toLocaleString()}</td>
+                <td>${Number(month.refundedOrders || 0).toLocaleString()}</td>
+                <td>${month.checkoutSuccessRate == null ? '—' : `${Number(month.checkoutSuccessRate).toFixed(1)}%`}</td>
+                <td>KES ${(Number(month.revenueMinor || 0) / 100).toLocaleString()}</td>
+                <td>KES ${(Number(month.refundedMinor || 0) / 100).toLocaleString()}</td>
+                <td>${metricValue(siteMetrics, 'page_view')}</td>
+                <td>${metricValue(siteMetrics, 'course_download_link')}</td>
+                <td>${metricValue(siteMetrics, 'shop_download_link')}</td>
+                <td>${metricValue(siteMetrics, 'lcp_ms')}</td>
+                <td>${metricValue(siteMetrics, 'cls')}</td>
+                <td>${metricValue(siteMetrics, 'inp_ms')}</td>
+                <td>${metricValue(siteMetrics, 'ttfb_ms')}</td>
+                <td>${metricValue(siteMetrics, 'fcp_ms')}</td>
+                <td>${metricValue(siteMetrics, 'supabase_query_ms')}</td>
+                <td>${metricValue(siteMetrics, 'admin_function_ms')}</td>
+              </tr>`;
+          }).join('')
+          : '<tr><td class="muted" colspan="19">No monthly metrics are available.</td></tr>';
+        status.textContent = 'Monthly insights loaded.';
+      } catch (error) {
+        console.error('Could not load monthly insights:', error);
+        status.textContent = error.message || 'Could not load monthly insights.';
+        status.className = 'notice provider-status error';
+      }
+    }
+
+    async function loadPaystackOrders() {
+      const status = document.getElementById('paystackStatus');
+      status.textContent = 'Loading payment orders...';
+      status.className = 'notice provider-status';
+      try {
+        const result = await invokeAdmin('paystack_orders');
+        const orders = Array.isArray(result?.orders) ? result.orders : [];
+        document.getElementById('paystackOrdersBody').innerHTML = orders.length
+          ? orders.map((order) => {
+            const refundStatus = order.refund?.status || '—';
+            const canRefund = order.status === 'paid' &&
+              (!order.refund || order.refund.status === 'failed');
+            return `
+              <tr>
+                <td>${escapeHtml(order.reference)}</td>
+                <td>${escapeHtml(new Date(order.created_at).toLocaleString())}</td>
+                <td>${escapeHtml(order.item_type)}</td>
+                <td>${escapeHtml(order.currency)} ${((Number(order.amount_minor) || 0) / 100).toLocaleString()}</td>
+                <td class="status">${escapeHtml(order.status)}</td>
+                <td class="status">${escapeHtml(refundStatus)}</td>
+                <td><div class="table-actions">
+                  <button type="button" class="button-secondary" data-reconcile-order="${escapeHtml(order.id)}">Reconcile</button>
+                  ${canRefund ? `<button type="button" class="button-danger" data-refund-order="${escapeHtml(order.id)}">Full refund</button>` : ''}
+                </div></td>
+              </tr>`;
+          }).join('')
+          : '<tr><td class="muted" colspan="7">No payment orders found.</td></tr>';
+        document.querySelectorAll('[data-reconcile-order]').forEach((button) => {
+          button.addEventListener('click', () => void reconcileOrder(button.dataset.reconcileOrder));
+        });
+        document.querySelectorAll('[data-refund-order]').forEach((button) => {
+          button.addEventListener('click', () => openRefundDialog(
+            orders.find((order) => String(order.id) === button.dataset.refundOrder),
+          ));
+        });
+        status.textContent = 'Payment orders loaded.';
+      } catch (error) {
+        console.error('Could not load payment orders:', error);
+        status.textContent = error.message || 'Could not load payment orders.';
+        status.className = 'notice provider-status error';
+      }
+    }
+
+    async function reconcileOrder(orderId) {
+      const status = document.getElementById('paystackStatus');
+      status.textContent = 'Reconciling transaction with Paystack...';
+      status.className = 'notice provider-status';
+      try {
+        const result = await invokeAdmin('paystack_reconcile', { orderId });
+        status.textContent = result.matches
+          ? `Paystack confirms the original charge for ${result.reference}; local order status is ${result.localStatus}.`
+          : `Mismatch for ${result.reference}: Paystack reports ${result.providerStatus}; review before taking action.`;
+        status.className = `notice provider-status${result.matches ? '' : ' error'}`;
+      } catch (error) {
+        console.error('Could not reconcile Paystack transaction:', error);
+        status.textContent = error.message || 'Could not reconcile transaction.';
+        status.className = 'notice provider-status error';
+      }
+    }
+
+    function openRefundDialog(order) {
+      if (!order) return;
+      pendingRefundOrder = order;
+      document.getElementById('refundReference').textContent = order.reference;
+      document.getElementById('refundConfirmationInput').value = '';
+      document.getElementById('refundDialogStatus').textContent = '';
+      document.getElementById('refundDialogStatus').className = 'notice';
+      document.getElementById('refundDialog').showModal();
+      document.getElementById('refundConfirmationInput').focus();
+    }
+
+    async function submitRefund(event) {
+      event.preventDefault();
+      if (!pendingRefundOrder) return;
+      const button = document.getElementById('confirmRefundButton');
+      const status = document.getElementById('refundDialogStatus');
+      button.disabled = true;
+      status.textContent = 'Requesting full refund from Paystack...';
+      status.className = 'notice';
+      try {
+        const result = await invokeAdmin('paystack_refund', {
+          orderId: pendingRefundOrder.id,
+          confirmation: document.getElementById('refundConfirmationInput').value.trim(),
+        });
+        document.getElementById('refundDialog').close();
+        pendingRefundOrder = null;
+        const message = result.status === 'processed'
+          ? 'Refund processed. Course access or product downloads tied only to this order have been revoked.'
+          : 'Refund request is pending Paystack confirmation. Do not retry it.';
+        document.getElementById('paystackStatus').textContent = message;
+        document.getElementById('paystackStatus').className = 'notice provider-status';
+        await loadPaystackOrders();
+      } catch (error) {
+        console.error('Could not request Paystack refund:', error);
+        status.textContent = error.message || 'Could not request refund.';
+        status.className = 'notice error';
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function loadBunnyOverview() {
+      const status = document.getElementById('bunnyStatus');
+      status.textContent = 'Loading Bunny Stream library...';
+      status.className = 'notice provider-status';
+      try {
+        const result = await invokeAdmin('bunny_overview');
+        const videos = Array.isArray(result?.videos) ? result.videos : [];
+        document.getElementById('bunnyVideoCount').textContent =
+          `${Number(result.totalVideos || 0).toLocaleString()} total · showing ${videos.length}`;
+        document.getElementById('bunnyVideosBody').innerHTML = videos.length
+          ? videos.map((video) => `
+            <tr>
+              <td>${escapeHtml(video.title)}</td>
+              <td class="status">${escapeHtml(video.status)}</td>
+              <td>${escapeHtml(video.encodeProgress)}%</td>
+              <td>${Number(video.views || 0).toLocaleString()}</td>
+              <td>${Number(video.length || 0).toLocaleString()} sec</td>
+              <td>${(Number(video.storageSize || 0) / (1024 * 1024)).toFixed(1)} MB</td>
+              <td>${escapeHtml(video.dateUploaded ? new Date(video.dateUploaded).toLocaleDateString() : '—')}</td>
+              <td><div class="table-actions">
+                <button type="button" class="button-secondary" data-bunny-edit="${escapeHtml(video.id)}">Edit title</button>
+                <button type="button" class="button-danger" data-bunny-delete="${escapeHtml(video.id)}">Delete</button>
+                <input type="file" accept="video/*" data-bunny-upload="${escapeHtml(video.id)}" aria-label="Upload video file for ${escapeHtml(video.title)}">
+              </div></td>
+            </tr>`).join('')
+          : '<tr><td class="muted" colspan="8">No videos found in the first page of the library.</td></tr>';
+        document.querySelectorAll('[data-bunny-edit]').forEach((button) => {
+          button.addEventListener('click', () => void editBunnyVideo(
+            button.dataset.bunnyEdit,
+            videos.find((video) => String(video.id) === button.dataset.bunnyEdit)?.title || '',
+          ));
+        });
+        document.querySelectorAll('[data-bunny-delete]').forEach((button) => {
+          button.addEventListener('click', () => void deleteBunnyVideo(button.dataset.bunnyDelete));
+        });
+        document.querySelectorAll('[data-bunny-upload]').forEach((input) => {
+          input.addEventListener('change', () => {
+            const file = input.files?.[0];
+            if (file) void uploadBunnyVideo(input.dataset.bunnyUpload, file);
+            input.value = '';
+          });
+        });
+        document.getElementById('bunnyEncodingStats').textContent = result.encoding
+          ? JSON.stringify(result.encoding, null, 2)
+          : result.encodingError || 'Encoding statistics unavailable.';
+        status.textContent = result.encodingError
+          ? `Video list loaded. ${result.encodingError}`
+          : 'Bunny Stream library loaded.';
+        status.className = `notice provider-status${result.encodingError ? ' error' : ''}`;
+      } catch (error) {
+        console.error('Could not load Bunny Stream library:', error);
+        status.textContent = error.message || 'Could not load Bunny Stream library.';
+        status.className = 'notice provider-status error';
+      }
+    }
+
+    async function editBunnyVideo(videoId, currentTitle) {
+      const title = window.prompt('Enter the new video title:', currentTitle);
+      if (title === null || !title.trim()) return;
+      const status = document.getElementById('bunnyStatus');
+      status.textContent = 'Updating video title...';
+      status.className = 'notice provider-status';
+      try {
+        await invokeAdmin('bunny_update_video', { videoId, title: title.trim() });
+        status.textContent = 'Bunny Stream video title updated.';
+        await loadBunnyOverview();
+      } catch (error) {
+        console.error('Could not update Bunny Stream video:', error);
+        status.textContent = error.message || 'Could not update video.';
+        status.className = 'notice provider-status error';
+      }
+    }
+
+    async function deleteBunnyVideo(videoId) {
+      const confirmation = window.prompt(`This permanently deletes the video. Type this exact ID to confirm:\n${videoId}`);
+      if (confirmation === null) return;
+      const status = document.getElementById('bunnyStatus');
+      status.textContent = 'Deleting video from Bunny Stream...';
+      status.className = 'notice provider-status';
+      try {
+        await invokeAdmin('bunny_delete_video', { videoId, confirmation: confirmation.trim() });
+        status.textContent = 'Video deleted from Bunny Stream.';
+        await loadBunnyOverview();
+      } catch (error) {
+        console.error('Could not delete Bunny Stream video:', error);
+        status.textContent = error.message || 'Could not delete video.';
+        status.className = 'notice provider-status error';
+      }
+    }
+
+    async function uploadBunnyVideo(videoId, file) {
+      const status = document.getElementById('bunnyStatus');
+      status.textContent = `Uploading ${file.name} to Bunny Stream...`;
+      status.className = 'notice provider-status';
+      try {
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        if (!data.session?.access_token) throw new Error('Sign in again before uploading.');
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-bunny-upload`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${data.session.access_token}`,
+            'Content-Type': file.type || 'application/octet-stream',
+            'X-Video-Id': videoId,
+          },
+          body: file,
+        });
+        const result = await response.json();
+        if (!response.ok || result?.error) {
+          throw new Error(result?.error || `Video upload failed (${response.status}).`);
+        }
+        status.textContent = 'Video uploaded. Bunny Stream is processing it.';
+        await loadBunnyOverview();
+      } catch (error) {
+        console.error('Could not upload Bunny Stream video:', error);
+        status.textContent = error.message || 'Could not upload video.';
+        status.className = 'notice provider-status error';
+      }
+    }
+
+    async function createBunnyVideo(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const titleInput = document.getElementById('bunnyVideoTitle');
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      const status = document.getElementById('bunnyStatus');
+      status.textContent = 'Creating video record in Bunny Stream...';
+      status.className = 'notice provider-status';
+      try {
+        const result = await invokeAdmin('bunny_create_video', { title: titleInput.value.trim() });
+        titleInput.value = '';
+        status.textContent = `Video record created${result.id ? ` (${result.id})` : ''}. Select a file in its row to upload.`;
+        await loadBunnyOverview();
+      } catch (error) {
+        console.error('Could not create Bunny Stream video:', error);
+        status.textContent = error.message || 'Could not create video record.';
+        status.className = 'notice provider-status error';
+      } finally {
+        button.disabled = false;
+      }
+    }
+
     async function loadDashboard() {
       const refreshButton = document.getElementById('refreshButton');
       refreshButton.disabled = true;
@@ -902,6 +1344,20 @@
 
     document.getElementById('refreshButton').addEventListener('click', loadDashboard);
     document.getElementById('mfaForm').addEventListener('submit', verifyMfa);
+    document.getElementById('analyticsRefreshButton').addEventListener('click', loadMonthlyMetrics);
+    document.getElementById('paystackRefreshButton').addEventListener('click', loadPaystackOrders);
+    document.getElementById('bunnyRefreshButton').addEventListener('click', loadBunnyOverview);
+    document.getElementById('providerAuditRefreshButton').addEventListener('click', loadProviderAudit);
+    document.getElementById('refundForm').addEventListener('submit', submitRefund);
+    document.getElementById('cancelRefundButton').addEventListener('click', () => {
+      document.getElementById('refundDialog').close();
+      pendingRefundOrder = null;
+    });
+    document.getElementById('refundDialog').addEventListener('close', () => {
+      pendingRefundOrder = null;
+      document.getElementById('refundConfirmationInput').value = '';
+    });
+    document.getElementById('bunnyCreateForm').addEventListener('submit', createBunnyVideo);
     document.querySelectorAll('[data-admin-tab]').forEach((button) => {
       button.addEventListener('click', () => setSection(button.dataset.adminTab));
     });

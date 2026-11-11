@@ -31,6 +31,7 @@
       }
     }
   </script>
+  <script src="site-analytics.js" defer></script>
 </head>
 <body class="bg-brand-forest text-brand-white font-sans antialiased selection:bg-brand-frost selection:text-brand-forest min-h-screen flex flex-col relative bg-[url('Background.png')] bg-repeat bg-center">
 
@@ -726,6 +727,11 @@
         const button = document.getElementById('shopCheckoutButton');
         button.disabled = true;
         button.textContent = 'Payment Confirmed';
+      } else if (data?.status === 'refunded') {
+        showShopCheckoutStatus('This order was refunded. Your cart is ready for a new checkout.', true);
+        const button = document.getElementById('shopCheckoutButton');
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
       } else {
         showShopCheckoutStatus('Payment was not completed. Your cart is ready to try again.', true);
         const button = document.getElementById('shopCheckoutButton');

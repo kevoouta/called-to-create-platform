@@ -31,6 +31,7 @@
       }
     }
   </script>
+  <script src="site-analytics.js" defer></script>
 </head>
 <body class="bg-brand-forest text-brand-white font-sans antialiased selection:bg-brand-frost selection:text-brand-forest min-h-screen flex flex-col relative bg-[url('Background.png')] bg-repeat bg-center">
 
@@ -368,12 +369,12 @@
         return;
       }
 
+      isCourseInCart = true;
       if (!currentUser) {
-        openCourseAuthDrawer('signup');
+        openCourseAuthDrawer('login');
         return;
       }
 
-      isCourseInCart = true;
       openCourseCart();
     }
 
@@ -616,6 +617,11 @@
         const button = document.getElementById('courseCheckoutButton');
         button.disabled = true;
         button.textContent = 'Payment Confirmed';
+      } else if (data?.status === 'refunded') {
+        showCourseCheckoutStatus('This course order was refunded. Complete a new checkout to regain access.', true);
+        const button = document.getElementById('courseCheckoutButton');
+        button.disabled = false;
+        button.textContent = 'Continue to Paystack';
       } else {
         showCourseCheckoutStatus('Payment was not completed. You can try checkout again.', true);
         const button = document.getElementById('courseCheckoutButton');
@@ -1041,12 +1047,22 @@
     }
 
     async function loadCourseDetails(courseSlug) {
-      const { data: course, error } = await window.supabaseClient
+      const courseQuery = window.supabaseClient
         .from('courses')
         .select('id, slug, title, description, category, instructor, duration, price_kes, price_usd, is_published')
+        .eq('is_published', true);
+      let { data: course, error } = await courseQuery
         .eq('slug', courseSlug)
-        .eq('is_published', true)
         .maybeSingle();
+
+      if (!course && !error) {
+        ({ data: course, error } = await window.supabaseClient
+          .from('courses')
+          .select('id, slug, title, description, category, instructor, duration, price_kes, price_usd, is_published')
+          .eq('id', courseSlug)
+          .eq('is_published', true)
+          .maybeSingle());
+      }
 
       if (error || !course) {
         console.error('Could not load course details:', error || 'Course not found or unpublished.');

@@ -235,6 +235,21 @@ async function createAssetDownloadUrl(storagePath: string) {
   return url.toString();
 }
 
+async function recordCourseDownloadLink() {
+  try {
+    await adminRequest('rpc/record_site_monthly_metric', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_metric_key: 'course_download_link',
+        p_route: '/library.html',
+        p_value: null,
+      }),
+    });
+  } catch (error) {
+    console.error('Could not record course download metric:', error);
+  }
+}
+
 async function handleRequest(request: Request) {
   const origin = request.headers.get('Origin');
   if (request.method === 'OPTIONS') {
@@ -314,6 +329,7 @@ async function handleRequest(request: Request) {
         const downloadUrl = new URL(await createAssetDownloadUrl(storagePath));
         const fileName = typeof asset.name === 'string' ? asset.name : 'course-resource';
         downloadUrl.searchParams.set('download', fileName);
+        await recordCourseDownloadLink();
         return response({
           url: downloadUrl.toString(),
           expiresIn: SIGNED_URL_TTL_SECONDS,

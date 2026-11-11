@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.admin-dashboard]
 verify_jwt = false
+
+[functions.site-analytics]
+verify_jwt = false
+
+[functions.admin-bunny-upload]
+verify_jwt = false

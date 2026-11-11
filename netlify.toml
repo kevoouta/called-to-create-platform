@@ -4,6 +4,7 @@
   command = ""
 
 # Automatically handle clean URLs (allows visiting /explore instead of /explore.html)
+# Netlify resolves the file if it exists; this rewrite keeps the path from looping back on itself.
 [[redirects]]
   from = "/*"
   to = "/:splat"

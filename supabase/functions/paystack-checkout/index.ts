@@ -8,7 +8,7 @@ interface CheckoutRequest {
   reference?: string;
   productId?: string;
   event?: string;
-  data?: { reference?: unknown };
+  data?: { reference?: unknown; id?: unknown; status?: unknown };
 }
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -240,6 +240,9 @@ async function verifyCheckout(
   const orders = await adminRequest(`payment_orders?${query}`);
   const order = Array.isArray(orders) ? orders[0] : null;
   if (!order) throw new Response('Checkout order not found.', { status: 404 });
+  if (order.status === 'refunded') {
+    return { status: 'refunded', kind: order.item_type };
+  }
   if (order.status === 'paid') return { status: 'success', kind: order.item_type };
 
   const transaction = await paystackRequest(
@@ -367,6 +370,18 @@ async function createProductDownload(user: { id: string }, productId: string) {
   const signedUrl = new URL(`${baseUrl}/storage/v1${signedPayload.signedURL}`);
   const fileName = path.split('/').pop() || String(product.title || 'download');
   signedUrl.searchParams.set('download', fileName);
+  try {
+    await adminRequest('rpc/record_site_monthly_metric', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_metric_key: 'shop_download_link',
+        p_route: '/library.html',
+        p_value: null,
+      }),
+    });
+  } catch (error) {
+    console.error('Could not record shop download metric:', error);
+  }
   return { downloadUrl: signedUrl.toString() };
 }
 
@@ -444,8 +459,32 @@ Deno.serve(async (request: Request) => {
           return response({ received: true }, 200, origin);
         }
         const verification = await verifyCheckout({ id: order.user_id }, reference);
-        if (verification.status !== 'success') {
+        if (verification.status !== 'success' && verification.status !== 'refunded') {
           throw new Error('Paystack reported a successful charge that is not yet verifiable.');
+        }
+      } else if (body.event === 'refund.processed' || body.event === 'refund.failed') {
+        const refundId = body.data?.id == null ? '' : String(body.data.id);
+        if (refundId) {
+          const query = new URLSearchParams({
+            select: 'order_id',
+            paystack_refund_id: `eq.${refundId}`,
+            limit: '1',
+          });
+          const refunds = await adminRequest(`admin_payment_refunds?${query}`);
+          const refund = Array.isArray(refunds) ? refunds[0] : null;
+          if (refund) {
+            await adminRequest('rpc/admin_update_payment_refund_by_provider_id', {
+              method: 'POST',
+              body: JSON.stringify({
+                p_paystack_refund_id: refundId,
+                p_status: body.event === 'refund.processed' ? 'processed' : 'failed',
+              }),
+            });
+          } else {
+            console.warn('Paystack refund webhook referenced an unknown refund:', refundId);
+          }
+        } else {
+          console.warn('Paystack refund webhook did not include a refund ID.');
         }
       }
       return response({ received: true }, 200, origin);
