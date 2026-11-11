@@ -478,7 +478,7 @@
         }
         const { data, error } = await supabaseClient.auth.mfa.enroll({
           factorType: 'totp',
-          friendlyName: 'Called to Create admin'
+          friendlyName: `Called to Create admin ${crypto.randomUUID()}`
         });
         if (error) throw error;
         factor = data;
