@@ -127,6 +127,11 @@
     .login form { display: grid; gap: 1rem; }
     .login form label { display: grid; gap: .45rem; color: #d6d8d6; font-size: .9rem; }
     .login form button { margin-top: .25rem; }
+    .mfa-enrollment { display: grid; justify-items: center; gap: .75rem; margin: 1.25rem 0; }
+    .mfa-qr { width: min(100%, 15rem); aspect-ratio: 1; padding: .5rem; border-radius: .75rem; background: #fff; }
+    .mfa-secret { max-width: 100%; padding: .65rem .8rem; border: 1px solid var(--border); border-radius: .6rem; color: var(--frost); overflow-wrap: anywhere; }
+    .mfa-enrollment p { margin: 0; text-align: center; }
+    .mfa-form { display: grid; gap: 1rem; }
     .metrics {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
@@ -229,13 +234,29 @@
     <section id="loginPanel" class="panel login">
       <span class="eyebrow">Administrator access</span>
       <h1>Admin sign in</h1>
-      <p class="muted">Sign in with an administrator account. Access is checked again by the server for every dashboard request.</p>
+      <p class="muted">Sign in with an administrator account, then verify with an authenticator app. Access is checked again by the server for every dashboard request.</p>
       <form id="loginForm">
         <label>Email<input id="emailInput" type="email" autocomplete="username" required></label>
         <label>Password<input id="passwordInput" type="password" autocomplete="current-password" required></label>
         <button id="signInButton" type="submit">Sign in</button>
       </form>
       <p id="loginStatus" class="notice" role="status"></p>
+    </section>
+
+    <section id="mfaPanel" class="panel login" hidden aria-labelledby="mfaTitle">
+      <span class="eyebrow">Administrator verification</span>
+      <h1 id="mfaTitle">Verify your identity</h1>
+      <p id="mfaInstructions" class="muted"></p>
+      <div id="mfaEnrollment" class="mfa-enrollment" hidden>
+        <img id="mfaQrCode" class="mfa-qr" alt="Scan this QR code with your authenticator app">
+        <p class="muted">Or enter this setup key in your authenticator app:</p>
+        <code id="mfaSecret" class="mfa-secret"></code>
+      </div>
+      <form id="mfaForm" class="mfa-form">
+        <label>Authenticator code<input id="mfaCodeInput" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" minlength="6" maxlength="8" required></label>
+        <button id="mfaVerifyButton" type="submit">Verify and continue</button>
+      </form>
+      <p id="mfaStatus" class="notice" role="status"></p>
     </section>
 
     <section id="dashboardPanel" hidden>
@@ -390,6 +411,10 @@
     let selectedCourseId = null;
     let selectedProductId = null;
     let activeSection = 'overview';
+    let activeSessionToken = null;
+    let pendingMfaFactorId = null;
+    let pendingMfaChallengeId = null;
+    let mfaQrObjectUrl = null;
 
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
       '&': '&amp;',
@@ -413,8 +438,172 @@
 
     function showSignedInState(signedIn) {
       document.getElementById('loginPanel').hidden = signedIn;
-      document.getElementById('dashboardPanel').hidden = !signedIn;
+      document.getElementById('mfaPanel').hidden = true;
+      document.getElementById('dashboardPanel').hidden = true;
       document.getElementById('signOutButton').hidden = !signedIn;
+    }
+
+    function setMfaStatus(message, isError = false) {
+      const status = document.getElementById('mfaStatus');
+      status.textContent = message;
+      status.className = `notice${isError ? ' error' : ''}`;
+    }
+
+    function clearMfaEnrollmentData() {
+      document.getElementById('mfaSecret').textContent = '';
+      document.getElementById('mfaQrCode').removeAttribute('src');
+      document.getElementById('mfaEnrollment').hidden = true;
+      if (mfaQrObjectUrl) URL.revokeObjectURL(mfaQrObjectUrl);
+      mfaQrObjectUrl = null;
+    }
+
+    async function beginMfaChallenge() {
+      const { data: assurance, error: assuranceError } =
+        await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (assuranceError) throw assuranceError;
+      if (assurance.currentLevel === 'aal2' && assurance.nextLevel === 'aal2') return true;
+
+      const { data: factors, error: factorsError } = await supabaseClient.auth.mfa.listFactors();
+      if (factorsError) throw factorsError;
+      const totpFactors = Array.isArray(factors.totp) ? factors.totp : [];
+      let factor = totpFactors.find((candidate) => candidate.status === 'verified');
+      let enrollment = false;
+
+      if (!factor) {
+        for (const unfinishedFactor of totpFactors) {
+          const { error: removeError } = await supabaseClient.auth.mfa.unenroll({
+            factorId: unfinishedFactor.id
+          });
+          if (removeError) throw removeError;
+        }
+        const { data, error } = await supabaseClient.auth.mfa.enroll({
+          factorType: 'totp',
+          friendlyName: 'Called to Create admin'
+        });
+        if (error) throw error;
+        factor = data;
+        enrollment = true;
+      }
+
+      pendingMfaFactorId = factor.id;
+      const { data: challenge, error: challengeError } =
+        await supabaseClient.auth.mfa.challenge({ factorId: factor.id });
+      if (challengeError) throw challengeError;
+      pendingMfaChallengeId = challenge.id;
+
+      const enrollmentPanel = document.getElementById('mfaEnrollment');
+      if (enrollment) {
+        document.getElementById('mfaTitle').textContent = 'Set up an authenticator';
+        document.getElementById('mfaInstructions').textContent =
+          'Scan this QR code with an authenticator app, then enter the code it generates. This setup is required to access the admin dashboard.';
+        const qrCode = factor.totp?.qr_code;
+        if (typeof qrCode !== 'string' || !qrCode.trimStart().startsWith('<svg')) {
+          throw new Error('Supabase did not return a valid authenticator QR code.');
+        }
+        if (mfaQrObjectUrl) URL.revokeObjectURL(mfaQrObjectUrl);
+        mfaQrObjectUrl = URL.createObjectURL(
+          new Blob([qrCode], { type: 'image/svg+xml' })
+        );
+        document.getElementById('mfaQrCode').src = mfaQrObjectUrl;
+        document.getElementById('mfaSecret').textContent = factor.totp?.secret || '';
+        enrollmentPanel.hidden = false;
+      } else {
+        document.getElementById('mfaTitle').textContent = 'Verify your identity';
+        document.getElementById('mfaInstructions').textContent =
+          'Enter the current code from your authenticator app to continue to the admin dashboard.';
+        enrollmentPanel.hidden = true;
+      }
+      document.getElementById('mfaCodeInput').value = '';
+      setMfaStatus('');
+      return false;
+    }
+
+    async function verifyMfa(event) {
+      event.preventDefault();
+      if (!pendingMfaFactorId || !pendingMfaChallengeId) {
+        setMfaStatus('Start a new sign-in to request an authenticator challenge.', true);
+        return;
+      }
+      const button = document.getElementById('mfaVerifyButton');
+      button.disabled = true;
+      setMfaStatus('Verifying authenticator code...');
+      try {
+        const { error } = await supabaseClient.auth.mfa.verify({
+          factorId: pendingMfaFactorId,
+          challengeId: pendingMfaChallengeId,
+          code: document.getElementById('mfaCodeInput').value.trim()
+        });
+        if (error) throw error;
+        const { data, error: sessionError } = await supabaseClient.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (!data.session) throw new Error('Your session expired. Sign in again.');
+        const { data: assurance, error: assuranceError } =
+          await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (assuranceError) throw assuranceError;
+        if (assurance.currentLevel !== 'aal2' || assurance.nextLevel !== 'aal2') {
+          throw new Error('The session is not verified at the required multi-factor level.');
+        }
+        document.getElementById('mfaCodeInput').value = '';
+        pendingMfaChallengeId = null;
+        activeSessionToken = data.session.access_token;
+        document.getElementById('mfaPanel').hidden = true;
+        document.getElementById('dashboardPanel').hidden = false;
+        clearMfaEnrollmentData();
+        setMfaStatus('Verification complete.');
+        void loadDashboard();
+      } catch (error) {
+        console.error('Could not verify admin multi-factor code:', error);
+        setMfaStatus(error.message || 'The authenticator code could not be verified.', true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function handleAuthenticatedSession(session) {
+      const accessToken = session?.access_token;
+      if (!accessToken) {
+        activeSessionToken = null;
+        pendingMfaFactorId = null;
+        pendingMfaChallengeId = null;
+        showSignedInState(false);
+        clearMfaEnrollmentData();
+        return false;
+      }
+      if (activeSessionToken === accessToken) {
+        return !document.getElementById('dashboardPanel').hidden;
+      }
+      activeSessionToken = accessToken;
+      pendingMfaFactorId = null;
+      pendingMfaChallengeId = null;
+      showSignedInState(true);
+      document.getElementById('mfaTitle').textContent = 'Checking administrator access';
+      document.getElementById('mfaInstructions').textContent =
+        'Verifying this account before continuing.';
+      setMfaStatus('Checking administrator access...');
+      document.getElementById('mfaPanel').hidden = false;
+
+      try {
+        const access = await invokeAdmin('session_check');
+        if (activeSessionToken !== accessToken) return false;
+        if (!access?.authorized) {
+          document.getElementById('mfaPanel').hidden = true;
+          document.getElementById('loginPanel').hidden = false;
+          setLoginStatus('This account is not authorized to use the admin dashboard.', true);
+          return false;
+        }
+        const verified = await beginMfaChallenge();
+        if (activeSessionToken !== accessToken) return false;
+        if (verified) {
+          document.getElementById('mfaPanel').hidden = true;
+          document.getElementById('dashboardPanel').hidden = false;
+          void loadDashboard();
+          return true;
+        }
+      } catch (error) {
+        console.error('Could not prepare admin multi-factor verification:', error);
+        setMfaStatus(error.message || 'Could not prepare multi-factor verification.', true);
+      }
+      return false;
     }
 
     function setSection(section) {
@@ -688,20 +877,28 @@
       const button = document.getElementById('signInButton');
       button.disabled = true;
       setLoginStatus('Signing in...');
-      const { error } = await supabaseClient.auth.signInWithPassword({
-        email: document.getElementById('emailInput').value.trim(),
-        password: document.getElementById('passwordInput').value
-      });
-      if (error) {
-        setLoginStatus(error.message, true);
-      } else {
-        document.getElementById('passwordInput').value = '';
-        setLoginStatus('Signed in. Checking administrator access...');
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email: document.getElementById('emailInput').value.trim(),
+          password: document.getElementById('passwordInput').value
+        });
+        if (error) {
+          setLoginStatus(error.message, true);
+        } else {
+          document.getElementById('passwordInput').value = '';
+          setLoginStatus('Signed in. Complete authenticator verification to continue.');
+          await handleAuthenticatedSession(data.session);
+        }
+      } catch (error) {
+        console.error('Could not sign in to admin dashboard:', error);
+        setLoginStatus(error.message || 'Could not sign in. Please try again.', true);
+      } finally {
+        button.disabled = false;
       }
-      button.disabled = false;
     });
 
     document.getElementById('refreshButton').addEventListener('click', loadDashboard);
+    document.getElementById('mfaForm').addEventListener('submit', verifyMfa);
     document.querySelectorAll('[data-admin-tab]').forEach((button) => {
       button.addEventListener('click', () => setSection(button.dataset.adminTab));
     });
@@ -720,13 +917,10 @@
     });
 
     supabaseClient.auth.onAuthStateChange((event, session) => {
-      const signedIn = Boolean(session?.user);
-      showSignedInState(signedIn);
-      if (signedIn && event !== 'INITIAL_SESSION') {
-        void loadDashboard();
-      } else if (!signedIn && event !== 'INITIAL_SESSION') {
-        setLoginStatus('Signed out.');
-      }
+      setTimeout(() => {
+        void handleAuthenticatedSession(session);
+        if (!session && event !== 'INITIAL_SESSION') setLoginStatus('Signed out.');
+      }, 0);
     });
 
     supabaseClient.auth.getSession().then(({ data, error }) => {
@@ -735,9 +929,7 @@
         setLoginStatus('Could not restore your session. Sign in again.', true);
         return;
       }
-      const signedIn = Boolean(data.session?.user);
-      showSignedInState(signedIn);
-      if (signedIn) void loadDashboard();
+      void handleAuthenticatedSession(data.session);
     });
   </script>
 </body>

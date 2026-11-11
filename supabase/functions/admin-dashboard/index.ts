@@ -1,5 +1,6 @@
 interface AdminRequest {
   action:
+    | 'session_check'
     | 'overview'
     | 'content_list'
     | 'audit_list'
@@ -104,7 +105,26 @@ async function getAuthenticatedUser(request: Request) {
   if (!result.ok) throw new HttpError('Your session is invalid or expired. Sign in again.', 401);
   const user = await result.json();
   if (typeof user.id !== 'string') throw new HttpError('Your session is invalid. Sign in again.', 401);
-  return user as { id: string };
+  const tokenParts = accessToken.split('.');
+  if (tokenParts.length !== 3) {
+    throw new HttpError('Your session is invalid. Sign in again.', 401);
+  }
+  let claims: JsonRecord;
+  try {
+    const encodedPayload = tokenParts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = atob(encodedPayload.padEnd(Math.ceil(encodedPayload.length / 4) * 4, '='));
+    const parsed: unknown = JSON.parse(payload);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('Invalid JWT payload.');
+    }
+    claims = parsed as JsonRecord;
+  } catch {
+    throw new HttpError('Your session is invalid. Sign in again.', 401);
+  }
+  if (claims.sub !== user.id) {
+    throw new HttpError('Your session is invalid. Sign in again.', 401);
+  }
+  return { id: user.id, assuranceLevel: claims.aal };
 }
 
 async function adminRequest(path: string, init?: RequestInit) {
@@ -570,6 +590,7 @@ async function handleRequest(request: Request) {
     const body = payload as AdminRequest;
     if (
       ![
+        'session_check',
         'overview',
         'content_list',
         'audit_list',
@@ -584,8 +605,14 @@ async function handleRequest(request: Request) {
     if (adminUserIds.size === 0) {
       throw new Error('No administrator IDs are configured in ADMIN_USER_IDS.');
     }
+    if (body.action === 'session_check') {
+      return jsonResponse({ authorized: adminUserIds.has(user.id) }, 200, origin);
+    }
     if (!adminUserIds.has(user.id)) {
       throw new HttpError('Administrator access is required.', 403);
+    }
+    if (user.assuranceLevel !== 'aal2') {
+      throw new HttpError('Complete multi-factor authentication to continue.', 403);
     }
 
     const result = body.action === 'overview'

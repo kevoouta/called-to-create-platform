@@ -88,7 +88,7 @@ The function checks enrollment on every lesson-video and download request. It re
 
 To enable it:
 
-1. Create or identify administrator accounts in Supabase Auth. Enable MFA for each administrator. Copy each administrator's Auth user UUID; do not use user-editable metadata to grant dashboard access.
+1. Create or identify administrator accounts in Supabase Auth. Copy each administrator's Auth user UUID; do not use user-editable metadata to grant dashboard access. The dashboard requires TOTP multi-factor authentication: it will guide an administrator to enroll an authenticator app on first sign-in, then require a fresh authenticator challenge.
 2. Set the server-only `ADMIN_USER_IDS` Edge Function secret to the comma-separated UUID allowlist. Do not put this value in `admin.html` or a browser setting.
 
    ```sh
@@ -102,4 +102,4 @@ To enable it:
    supabase functions deploy admin-dashboard
    ```
 
-The browser uses only the existing Supabase publishable key. Each dashboard request verifies the Supabase session and checks its user UUID against `ADMIN_USER_IDS` on the server before reading or editing data with the service-role key. Database update functions are executable only by `service_role`; updates and audit snapshots are atomic. `verify_jwt = false` is intentional in `supabase/config.toml`: the function validates the bearer token with Supabase Auth itself, then applies the administrator allowlist. Never add provider secrets to this static page.
+The browser uses only the existing Supabase publishable key. Each dashboard request verifies the Supabase session with Supabase Auth, checks its user UUID against `ADMIN_USER_IDS`, and requires the verified JWT's `aal2` assurance claim before reading or editing data with the service-role key. The dashboard guides an administrator through TOTP enrollment when no verified authenticator exists and challenges an existing TOTP factor for later sign-ins. Database update functions are executable only by `service_role`; updates and audit snapshots are atomic. `verify_jwt = false` is intentional in `supabase/config.toml`: the function validates the bearer token with Supabase Auth itself, then applies the administrator allowlist and MFA requirement. Never add provider secrets to this static page.
