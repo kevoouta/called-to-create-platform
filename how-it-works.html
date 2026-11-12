@@ -70,14 +70,17 @@
       </a>
     </nav>
 
-    <!-- Account Actions (Dynamic Auth Container) -->
-    <div id="navAuthButtons" class="flex items-center space-x-4">
-      <button onclick="openAuthDrawer('login')" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2 cursor-pointer">
-        Log In
-      </button>
-      <button onclick="openAuthDrawer('signup')" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs font-sans cursor-pointer">
-        Sign Up
-      </button>
+    <div class="flex items-center gap-2">
+      <!-- SHARED_CART -->
+      <!-- Account Actions (Dynamic Auth Container) -->
+      <div id="navAuthButtons" class="flex items-center gap-2">
+        <button onclick="openAuthDrawer('login')" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2 cursor-pointer">
+          Log In
+        </button>
+        <button onclick="openAuthDrawer('signup')" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs font-sans cursor-pointer">
+          Sign Up
+        </button>
+      </div>
     </div>
   </header>
 
@@ -106,7 +109,7 @@
           <span class="text-4xl font-heading text-brand-frost block">01</span>
           <h3 class="text-2xl font-heading tracking-wide text-brand-white">Choose What You Need</h3>
           <p class="text-xs text-gray-400 font-sans leading-relaxed">
-            Explore courses across creative practice and business growth—from visual storytelling and sound design to creative entrepreneurship. Choose the skills and resources that fit your goals.
+            Explore courses across creative practice and business growth - from visual storytelling and sound design to creative entrepreneurship. Choose the skills and resources that fit your goals.
           </p>
         </div>
         <div class="pt-6 border-t border-gray-800/80 mt-6 text-[10px] text-brand-frost uppercase font-bold tracking-widest">
@@ -153,9 +156,10 @@
         <h2 class="text-3xl md:text-4xl font-heading tracking-wide text-brand-white">
           Why We Rejected Subscription Fatigue
         </h2>
-        <p class="text-xs md:text-sm text-gray-300 font-sans leading-relaxed">
-          Most platforms force you into ongoing monthly fees—if you cancel, you lose access to every lesson and project file you studied. Here is how Called to Create compares:
-        </p>
+        <div class="space-y-2 text-xs md:text-sm text-gray-300 font-sans leading-relaxed">
+          <p>With many platforms, canceling your monthly plan means losing access to lessons and project files.</p>
+          <p>Here is how Called to Create compares:</p>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

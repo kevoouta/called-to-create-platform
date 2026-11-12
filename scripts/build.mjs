@@ -6,6 +6,7 @@ const projectRoot = resolve(fileURLToPath(new URL('../', import.meta.url)));
 const outputDirectory = join(projectRoot, 'dist');
 const footerPath = join(projectRoot, 'partials', 'footer.html');
 const footerMarker = '<!-- SHARED_FOOTER -->';
+const cartMarker = '<!-- SHARED_CART -->';
 const excludedDirectories = new Set([
   '.git',
   '.github',
@@ -41,21 +42,35 @@ for (const entry of entries) {
   if (extname(entry.name) === '.html') {
     let html = await readFile(sourcePath, 'utf8');
     const markerCount = html.split(footerMarker).length - 1;
+    const cartMarkerCount = html.split(cartMarker).length - 1;
 
     if (markerCount > 1 || (markerCount === 0 && /<footer\b/i.test(html))) {
       throw new Error(`${entry.name} must contain exactly one ${footerMarker} marker.`);
     }
+    if (cartMarkerCount > 1) {
+      throw new Error(`${entry.name} may contain at most one ${cartMarker} marker.`);
+    }
 
     if (markerCount === 1) {
       html = html.replace(footerMarker, footer);
+      if (cartMarkerCount === 1) {
+        html = html.replace(cartMarker, '<div id="sharedCartMount" class="flex items-center"></div>');
+      }
       if ((html.match(/<\/body>/gi) ?? []).length !== 1) {
         throw new Error(`${entry.name} must contain exactly one closing body tag.`);
       }
-      html = html.replace(
-        /<\/body>/i,
-        '  <script src="footer.js"></script>\n</body>',
-      );
+      const scripts = [
+        '  <script src="footer.js"></script>',
+        ...(cartMarkerCount === 1 ? ['  <script src="shared-cart.js"></script>'] : []),
+      ].join('\n');
+      html = html.replace(/<\/body>/i, `${scripts}\n</body>`);
       pagesWithFooter += 1;
+    } else if (cartMarkerCount === 1) {
+      html = html.replace(cartMarker, '<div id="sharedCartMount" class="flex items-center"></div>');
+      if ((html.match(/<\/body>/gi) ?? []).length !== 1) {
+        throw new Error(`${entry.name} must contain exactly one closing body tag.`);
+      }
+      html = html.replace(/<\/body>/i, '  <script src="shared-cart.js"></script>\n</body>');
     }
 
     await writeFile(outputPath, html);

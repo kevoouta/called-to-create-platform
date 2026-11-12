@@ -256,6 +256,7 @@
   <script src="https://js.paystack.co/v2/inline.js"></script>
   <!-- Supabase Data Source -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="shared-cart.js"></script>
 
   <!-- Dynamic Controller & Interactive Tab/Lesson Script -->
   <script>
@@ -303,7 +304,18 @@
         return;
       }
 
+      saveCourseToSharedCart();
       openCourseCart();
+    }
+
+    function saveCourseToSharedCart() {
+      if (!currentUser || !currentCourse) return;
+      try {
+        window.C2CSharedCart.addCourse(currentUser.id, currentCourse.id);
+      } catch (error) {
+        console.error('Could not save course to cart:', error);
+        showCourseCheckoutStatus(error.message || 'Could not save course to cart.', true);
+      }
     }
 
     function updateCoursePurchaseButton() {
@@ -396,6 +408,15 @@
     }
 
     function removeCourseFromCart() {
+      if (currentUser && currentCourse) {
+        try {
+          window.C2CSharedCart.removeCourse(currentUser.id, currentCourse.id);
+        } catch (error) {
+          console.error('Could not remove course from cart:', error);
+          showCourseCheckoutStatus(error.message || 'Could not update the cart.', true);
+          return;
+        }
+      }
       isCourseInCart = false;
       const checkoutButton = document.getElementById('courseCheckoutButton');
       checkoutButton.disabled = false;
@@ -539,6 +560,12 @@
 
       if (data?.status === 'success') {
         hasCourseAccess = true;
+        isCourseInCart = false;
+        try {
+          window.C2CSharedCart.removeCourse(currentUser.id, currentCourse.id);
+        } catch (cartError) {
+          console.error('Could not remove purchased course from cart:', cartError);
+        }
         updateCoursePurchaseButton();
         showCourseCheckoutStatus('Payment confirmed. The course is now available in your library.');
         await refreshCourseAccess();
@@ -563,6 +590,7 @@
       if (params.get('payment_return') !== '1') return;
 
       isCourseInCart = true;
+      saveCourseToSharedCart();
       openCourseCart();
       const reference = params.get('reference') || params.get('trxref');
       await verifyCoursePayment(reference, true);
@@ -625,10 +653,10 @@
 
       currentUser = data.user;
       updateCourseNavForAuth(currentUser);
+      if (isCourseInCart) saveCourseToSharedCart();
       await refreshCourseAccess();
-      isCourseInCart = true;
       closeCourseAuthDrawer();
-      openCourseCart();
+      if (isCourseInCart) openCourseCart();
       await processCoursePaymentReturn();
     }
 
@@ -653,10 +681,10 @@
       if (data.session && data.user) {
         currentUser = data.user;
         updateCourseNavForAuth(currentUser);
+        if (isCourseInCart) saveCourseToSharedCart();
         await refreshCourseAccess();
-        isCourseInCart = true;
         closeCourseAuthDrawer();
-        openCourseCart();
+        if (isCourseInCart) openCourseCart();
         await processCoursePaymentReturn();
       } else {
         showCourseAuthStatus('courseSignupStatus', 'Account created. Check your email, then log in to continue.');
@@ -1025,6 +1053,7 @@
       if (error) console.error('Could not read the current session:', error);
       currentUser = data.session ? data.session.user : null;
       updateCourseNavForAuth(currentUser);
+      window.C2CSharedCart.setUser(currentUser);
 
       const urlParams = new URLSearchParams(window.location.search);
       const courseSlug = urlParams.get('id');
@@ -1034,6 +1063,16 @@
       }
       await loadCourseDetails(courseSlug);
       await refreshCourseAccess();
+      if (currentUser && currentCourse) {
+        try {
+          isCourseInCart = window.C2CSharedCart
+            .getCart(currentUser.id)
+            .courses.includes(String(currentCourse.id));
+          if (isCourseInCart && urlParams.get('open_cart') === '1') openCourseCart();
+        } catch (cartError) {
+          console.error('Could not restore the course cart:', cartError);
+        }
+      }
       await processCoursePaymentReturn();
     });
 

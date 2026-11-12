@@ -70,14 +70,17 @@
       </a>
     </nav>
 
-    <!-- Dynamic Account Actions -->
-    <div id="navAuthButtons" class="flex items-center space-x-4">
-      <button onclick="openAuthDrawer('login')" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2 cursor-pointer">
-        Log In
-      </button>
-      <button onclick="openAuthDrawer('signup')" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs font-sans cursor-pointer">
-        Sign Up
-      </button>
+    <div class="flex items-center gap-2">
+      <!-- SHARED_CART -->
+      <!-- Dynamic Account Actions -->
+      <div id="navAuthButtons" class="flex items-center gap-2">
+        <button onclick="openAuthDrawer('login')" class="text-xs font-sans font-semibold text-gray-300 hover:text-brand-white transition-colors px-3 py-2 cursor-pointer">
+          Log In
+        </button>
+        <button onclick="openAuthDrawer('signup')" class="bg-brand-frost text-brand-forest px-5 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all transform hover:scale-105 text-xs font-sans cursor-pointer">
+          Sign Up
+        </button>
+      </div>
     </div>
   </header>
 
@@ -99,7 +102,7 @@
       </div>
 
       <!-- Quick Cart Button -->
-      <button onclick="toggleCartDrawer()" class="bg-brand-gray border border-gray-800 hover:border-brand-frost/50 text-brand-white px-6 py-3 rounded-2xl font-bold flex items-center gap-3 transition-all cursor-pointer">
+      <button id="shopCartTrigger" onclick="toggleCartDrawer()" class="hidden bg-brand-gray border border-gray-800 hover:border-brand-frost/50 text-brand-white px-6 py-3 rounded-2xl font-bold flex items-center gap-3 transition-all cursor-pointer">
         <span class="text-xs">Your Asset Cart</span>
         <span id="cartCountBadge" class="bg-brand-frost text-brand-forest font-bold text-xs px-2.5 py-0.5 rounded-full">0</span>
       </button>
@@ -251,6 +254,14 @@
 
     // Auth State Listener
     document.addEventListener("DOMContentLoaded", async () => {
+      window.addEventListener('c2c-cart-updated', (event) => {
+        if (event.detail?.userId !== currentUser?.id || shopProducts.length === 0) return;
+        try {
+          restoreShopCart();
+        } catch (error) {
+          console.error('Could not refresh the shop cart:', error);
+        }
+      });
       window.supabaseClient.auth.onAuthStateChange((event, session) => {
         currentUser = session ? session.user : null;
         updateNavForAuth(currentUser);
@@ -261,12 +272,28 @@
       updateNavForAuth(currentUser);
       await loadPurchasedShopProducts();
       await loadShopProducts();
+      if (currentUser && new URLSearchParams(window.location.search).get('open_cart') === '1') {
+        document.getElementById('cartDrawer').classList.remove('hidden');
+      }
       await processShopPaymentReturn();
     });
 
     // Dynamic Navigation Header
     function updateNavForAuth(user) {
+      window.C2CSharedCart?.setUser(user);
+      if (user && window.C2CSharedCart) {
+        try {
+          const sharedProducts = window.C2CSharedCart.getCart(user.id).products;
+          const guestProducts = readGuestProductIds();
+          window.C2CSharedCart.setProducts(user.id, [...sharedProducts, ...guestProducts]);
+          sessionStorage.removeItem('c2c-shop-cart');
+        } catch (error) {
+          console.error('Could not migrate the shop cart to the signed-in account:', error);
+        }
+      }
+
       const navContainer = document.getElementById('navAuthButtons');
+      document.getElementById('shopCartTrigger')?.classList.toggle('hidden', !user);
       if (!navContainer) return;
 
       if (user) {
@@ -364,7 +391,37 @@
     }
 
     function persistShopCart() {
-      sessionStorage.setItem('c2c-shop-cart', JSON.stringify(cart.map((item) => String(item.id))));
+      const productIds = cart.map((item) => String(item.id));
+      if (currentUser && window.C2CSharedCart) {
+        window.C2CSharedCart.setProducts(currentUser.id, productIds);
+      } else {
+        sessionStorage.setItem('c2c-shop-cart', JSON.stringify(productIds));
+      }
+    }
+
+    function readGuestProductIds() {
+      const savedCart = sessionStorage.getItem('c2c-shop-cart');
+      if (!savedCart) return [];
+      const savedIds = JSON.parse(savedCart);
+      if (!Array.isArray(savedIds) || savedIds.some((id) => typeof id !== 'string')) {
+        throw new Error('Saved shop cart must contain product IDs.');
+      }
+      return [...new Set(savedIds)];
+    }
+
+    function restoreShopCart() {
+      const savedIds = currentUser && window.C2CSharedCart
+        ? window.C2CSharedCart.getCart(currentUser.id).products
+        : readGuestProductIds();
+      cart = savedIds
+        .map((id) => shopProducts.find((product) => String(product.id) === String(id)))
+        .filter(Boolean)
+        .map((product) => ({
+          id: product.id,
+          title: product.title,
+          price: Number(product.price)
+        }));
+      updateCartUI();
     }
 
     function addToCart(productId) {
@@ -631,6 +688,9 @@
         cart.forEach((item) => purchasedShopProductIds.add(String(item.id)));
         cart = [];
         sessionStorage.removeItem('c2c-shop-cart');
+        if (currentUser && window.C2CSharedCart) {
+          window.C2CSharedCart.setProducts(currentUser.id, []);
+        }
         updateCartUI();
         renderShopProducts();
         showShopCheckoutStatus('Payment confirmed. Your digital asset order has been recorded.');
@@ -809,26 +869,11 @@ async function loadShopProducts() {
 
   shopProducts = products;
   renderShopProducts();
-  const savedCart = sessionStorage.getItem('c2c-shop-cart');
-  if (savedCart) {
-    try {
-      const savedIds = JSON.parse(savedCart);
-      if (!Array.isArray(savedIds)) throw new Error('Saved cart must be an array.');
-      cart = savedIds
-        .filter((id) => typeof id === 'string')
-        .map((id) => shopProducts.find((product) => String(product.id) === id))
-        .filter(Boolean)
-        .map((product) => ({
-          id: product.id,
-          title: product.title,
-          price: Number(product.price)
-        }));
-      persistShopCart();
-      updateCartUI();
-    } catch (error) {
-      console.error('Could not restore the saved cart:', error);
-      sessionStorage.removeItem('c2c-shop-cart');
-    }
+  try {
+    restoreShopCart();
+  } catch (error) {
+    console.error('Could not restore the saved cart:', error);
+    sessionStorage.removeItem('c2c-shop-cart');
   }
   renderShopCategoryFilters(products);
 }
