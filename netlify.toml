@@ -1,7 +1,6 @@
 [build]
-  # Tells Netlify your root folder contains the static site files
-  publish = "."
-  command = ""
+  publish = "dist"
+  command = "node scripts/build.mjs"
 
 # Automatically handle clean URLs (allows visiting /explore instead of /explore.html)
 # Netlify resolves the file if it exists; this rewrite keeps the path from looping back on itself.

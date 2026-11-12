@@ -1,6 +1,18 @@
 # called-to-create-platform
 An online creative edtech platform.
 
+## Shared footer
+
+The public pages use the shared footer in `partials/footer.html`. Edit that partial to update the footer across the site. Its newsletter behavior is in `footer.js`.
+
+Build the static site locally with:
+
+```sh
+node scripts/build.mjs
+```
+
+The generated site is written to `dist/`. In VS Code, **Terminal → Run Build Task** (Ctrl+Shift+B) runs the same command, and Live Server is configured to serve `dist/`. Netlify runs the build automatically before publishing `dist/`.
+
 ## Paystack checkout
 
 The course and digital-asset cart drawers open Paystack Inline checkout in a popup through the `paystack-checkout` Supabase Edge Function. The function calculates prices from Supabase, verifies completed transactions with Paystack, and records successful orders. Course orders also create the corresponding enrollment. Never put the Paystack secret key in browser code.
