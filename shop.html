@@ -254,6 +254,11 @@
 
     // Auth State Listener
     document.addEventListener("DOMContentLoaded", async () => {
+      window.addEventListener('c2c-product-purchase-completed', async (event) => {
+        if (event.detail?.userId !== currentUser?.id) return;
+        await loadPurchasedShopProducts();
+        renderShopProducts();
+      });
       window.addEventListener('c2c-cart-updated', (event) => {
         if (event.detail?.userId !== currentUser?.id || shopProducts.length === 0) return;
         try {

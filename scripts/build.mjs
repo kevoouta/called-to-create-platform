@@ -20,6 +20,8 @@ const excludedDirectories = new Set([
 const excludedExtensions = new Set(['.md', '.sql', '.toml']);
 
 const footer = await readFile(footerPath, 'utf8');
+const paystackScript = '  <script src="https://js.paystack.co/v2/inline.js"></script>';
+const sharedCartScript = '  <script src="shared-cart.js"></script>';
 await rm(outputDirectory, { recursive: true, force: true });
 await mkdir(outputDirectory, { recursive: true });
 
@@ -50,6 +52,12 @@ for (const entry of entries) {
     if (cartMarkerCount > 1) {
       throw new Error(`${entry.name} may contain at most one ${cartMarker} marker.`);
     }
+    const cartScripts = cartMarkerCount === 1
+      ? [
+          ...(/<script\b[^>]*src=["']https:\/\/js\.paystack\.co\/v2\/inline\.js["']/i.test(html) ? [] : [paystackScript]),
+          sharedCartScript,
+        ]
+      : [];
 
     if (markerCount === 1) {
       html = html.replace(footerMarker, footer);
@@ -61,7 +69,7 @@ for (const entry of entries) {
       }
       const scripts = [
         '  <script src="footer.js"></script>',
-        ...(cartMarkerCount === 1 ? ['  <script src="shared-cart.js"></script>'] : []),
+        ...cartScripts,
       ].join('\n');
       html = html.replace(/<\/body>/i, `${scripts}\n</body>`);
       pagesWithFooter += 1;
@@ -70,7 +78,7 @@ for (const entry of entries) {
       if ((html.match(/<\/body>/gi) ?? []).length !== 1) {
         throw new Error(`${entry.name} must contain exactly one closing body tag.`);
       }
-      html = html.replace(/<\/body>/i, '  <script src="shared-cart.js"></script>\n</body>');
+      html = html.replace(/<\/body>/i, `${cartScripts.join('\n')}\n</body>`);
     }
 
     await writeFile(outputPath, html);

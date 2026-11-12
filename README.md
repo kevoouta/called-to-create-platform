@@ -5,7 +5,7 @@ An online creative edtech platform.
 
 The public pages use the shared footer in `partials/footer.html`. Edit that partial to update the footer across the site. Its newsletter behavior is in `footer.js`.
 
-The signed-in cart control is included on the homepage, course catalog, shop, and How It Works page. Cart contents are saved per Supabase user in browser storage; product and course checkout continue through their existing flows.
+The signed-in cart control is included on the homepage, course catalog, shop, How It Works page, and Library. Cart contents are saved per Supabase user in browser storage; products can be checked out from the shared cart, while course checkout continues through the course page.
 
 Build the static site locally with:
 
