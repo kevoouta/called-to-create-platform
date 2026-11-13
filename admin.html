@@ -287,6 +287,7 @@
       <nav class="tabs" aria-label="Admin dashboard sections">
         <button type="button" data-admin-tab="overview" aria-pressed="true">Overview</button>
         <button type="button" data-admin-tab="analytics" aria-pressed="false">Monthly insights</button>
+        <button type="button" data-admin-tab="reports" aria-pressed="false">Reports</button>
         <button type="button" data-admin-tab="courses" aria-pressed="false">Courses</button>
         <button type="button" data-admin-tab="products" aria-pressed="false">Shop products</button>
         <button type="button" data-admin-tab="paystack" aria-pressed="false">Paystack</button>
@@ -442,6 +443,32 @@
         <p class="muted">Browser performance samples are aggregated by month and page path. Metrics are approximate and reflect visitors whose browsers support the relevant Performance APIs.</p>
       </section>
 
+      <section id="reportsSection" data-admin-section="reports" hidden>
+        <div class="section-heading">
+          <div>
+            <h2>Download reports</h2>
+            <p class="muted">Export sitewide monthly insights or all-time course performance for an instructor as CSV.</p>
+          </div>
+        </div>
+        <p id="reportsStatus" class="notice provider-status" role="status">Choose a report to generate.</p>
+        <div class="panel provider-toolbar">
+          <div>
+            <h3>Sitewide report</h3>
+            <p class="muted">Last 12 months of business, traffic, downloads, and aggregated performance metrics.</p>
+          </div>
+          <button type="button" id="sitewideReportButton">Download sitewide CSV</button>
+        </div>
+        <div class="panel provider-toolbar">
+          <label for="reportInstructorSelect">Instructor
+            <select id="reportInstructorSelect" required>
+              <option value="">Loading instructors...</option>
+            </select>
+          </label>
+          <button type="button" id="instructorReportButton" disabled>Download instructor CSV</button>
+        </div>
+        <p class="muted">Instructor reports include course enrollments, paid and refunded course orders, and sales amounts. Enrollment and sales figures are lifetime totals.</p>
+      </section>
+
       <section id="paystackSection" data-admin-section="paystack" hidden>
         <div class="section-heading">
           <div>
@@ -525,6 +552,7 @@
     let pendingMfaChallengeId = null;
     let mfaQrObjectUrl = null;
     let pendingRefundOrder = null;
+    let reportInstructorsLoaded = false;
 
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
       '&': '&amp;',
@@ -734,6 +762,8 @@
         void loadProviderAudit();
       } else if (section === 'analytics') {
         void loadMonthlyMetrics();
+      } else if (section === 'reports') {
+        if (!reportInstructorsLoaded) void loadReportInstructors();
       } else if (section === 'paystack') {
         void loadPaystackOrders();
       } else if (section === 'bunny') {
@@ -1019,6 +1049,166 @@
         console.error('Could not load monthly insights:', error);
         status.textContent = error.message || 'Could not load monthly insights.';
         status.className = 'notice provider-status error';
+      }
+    }
+
+    function csvCell(value) {
+      let text = value == null ? '' : String(value);
+      if (typeof value === 'string' && /^[\t\r\n ]*[=+\-@]/.test(text)) text = `'${text}`;
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    function downloadCsv(filename, rows) {
+      const csv = rows.map((row) => row.map(csvCell).join(',')).join('\r\n');
+      const url = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function reportMetric(siteMetrics, metricName) {
+      const matching = siteMetrics.filter((metric) => metric.metric === metricName);
+      const samples = matching.reduce((total, metric) => total + Number(metric.samples || 0), 0);
+      if (!samples || metricName === 'page_view') return { samples, average: null };
+      const weightedSum = matching.reduce((total, metric) => {
+        const average = Number(metric.average);
+        return total + (Number.isFinite(average) ? average * Number(metric.samples || 0) : 0);
+      }, 0);
+      return { samples, average: weightedSum / samples };
+    }
+
+    async function loadReportInstructors() {
+      const select = document.getElementById('reportInstructorSelect');
+      const status = document.getElementById('reportsStatus');
+      status.textContent = 'Loading instructors...';
+      status.className = 'notice provider-status';
+      try {
+        const result = await invokeAdmin('report_instructors');
+        const instructors = Array.isArray(result?.instructors) ? result.instructors : [];
+        select.innerHTML = '<option value="">Select an instructor</option>' +
+          instructors.map((instructor) =>
+            `<option value="${escapeHtml(instructor)}">${escapeHtml(instructor)}</option>`
+          ).join('');
+        reportInstructorsLoaded = true;
+        status.textContent = instructors.length
+          ? 'Choose a report to generate.'
+          : 'No instructors are assigned to courses yet.';
+      } catch (error) {
+        console.error('Could not load report instructors:', error);
+        status.textContent = error.message || 'Could not load instructors.';
+        status.className = 'notice provider-status error';
+      }
+    }
+
+    async function downloadSitewideReport() {
+      const button = document.getElementById('sitewideReportButton');
+      const status = document.getElementById('reportsStatus');
+      button.disabled = true;
+      status.textContent = 'Generating sitewide report...';
+      status.className = 'notice provider-status';
+      try {
+        const result = await invokeAdmin('monthly_metrics');
+        const months = Array.isArray(result?.months) ? result.months : [];
+        const rows = [[
+          'Month', 'Total orders', 'Paid orders', 'Course orders', 'Shop orders',
+          'Refunded orders', 'Checkout success rate (%)', 'Gross sales (KES)',
+          'Refunds (KES)', 'Net sales (KES)', 'Page views', 'Course download links',
+          'Shop download links', 'Average LCP (ms)', 'Average CLS', 'Average INP (ms)',
+          'Average TTFB (ms)', 'Average FCP (ms)', 'Average Supabase query (ms)',
+          'Average admin function (ms)',
+        ]];
+        for (const month of months) {
+          const siteMetrics = Array.isArray(month.siteMetrics) ? month.siteMetrics : [];
+          const grossSalesMinor = Number(month.revenueMinor || 0);
+          const refundedMinor = Number(month.refundedMinor || 0);
+          const pageViews = reportMetric(siteMetrics, 'page_view');
+          const courseDownloads = reportMetric(siteMetrics, 'course_download_link');
+          const shopDownloads = reportMetric(siteMetrics, 'shop_download_link');
+          rows.push([
+            month.month,
+            Number(month.totalOrders || 0),
+            Number(month.paidOrders || 0),
+            Number(month.courseOrders || 0),
+            Number(month.shopOrders || 0),
+            Number(month.refundedOrders || 0),
+            month.checkoutSuccessRate == null ? '' : Number(month.checkoutSuccessRate),
+            (grossSalesMinor / 100).toFixed(2),
+            (refundedMinor / 100).toFixed(2),
+            ((grossSalesMinor - refundedMinor) / 100).toFixed(2),
+            pageViews.samples,
+            courseDownloads.samples,
+            shopDownloads.samples,
+            reportMetric(siteMetrics, 'lcp_ms').average,
+            reportMetric(siteMetrics, 'cls').average,
+            reportMetric(siteMetrics, 'inp_ms').average,
+            reportMetric(siteMetrics, 'ttfb_ms').average,
+            reportMetric(siteMetrics, 'fcp_ms').average,
+            reportMetric(siteMetrics, 'supabase_query_ms').average,
+            reportMetric(siteMetrics, 'admin_function_ms').average,
+          ]);
+        }
+        downloadCsv(`sitewide-report-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+        status.textContent = 'Sitewide report downloaded.';
+      } catch (error) {
+        console.error('Could not generate sitewide report:', error);
+        status.textContent = error.message || 'Could not generate sitewide report.';
+        status.className = 'notice provider-status error';
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function downloadInstructorReport() {
+      const select = document.getElementById('reportInstructorSelect');
+      const button = document.getElementById('instructorReportButton');
+      const status = document.getElementById('reportsStatus');
+      const instructor = select.value;
+      if (!instructor) {
+        status.textContent = 'Select an instructor first.';
+        status.className = 'notice provider-status error';
+        return;
+      }
+      button.disabled = true;
+      status.textContent = `Generating report for ${instructor}...`;
+      status.className = 'notice provider-status';
+      try {
+        const result = await invokeAdmin('instructor_report', { instructor });
+        const courses = Array.isArray(result?.courses) ? result.courses : [];
+        const rows = [[
+          'Instructor', 'Course ID', 'Course', 'Enrollments', 'Paid orders',
+          'Refunded orders', 'Gross sales (KES)', 'Refunds (KES)', 'Net sales (KES)',
+        ]];
+        for (const course of courses) {
+          rows.push([
+            result.instructor,
+            course.courseId,
+            course.courseTitle,
+            Number(course.enrollments || 0),
+            Number(course.paidOrders || 0),
+            Number(course.refundedOrders || 0),
+            (Number(course.grossSalesMinor || 0) / 100).toFixed(2),
+            (Number(course.refundedMinor || 0) / 100).toFixed(2),
+            (Number(course.netSalesMinor || 0) / 100).toFixed(2),
+          ]);
+        }
+        const filename = instructor.normalize('NFKD')
+          .replace(/[^a-zA-Z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+          .toLowerCase() || 'instructor';
+        downloadCsv(`instructor-report-${filename}-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+        status.textContent = courses.length
+          ? `Instructor report for ${result.instructor} downloaded.`
+          : `No course data found for ${result.instructor}.`;
+      } catch (error) {
+        console.error('Could not generate instructor report:', error);
+        status.textContent = error.message || 'Could not generate instructor report.';
+        status.className = 'notice provider-status error';
+      } finally {
+        button.disabled = !select.value;
       }
     }
 
@@ -1345,6 +1535,11 @@
     document.getElementById('refreshButton').addEventListener('click', loadDashboard);
     document.getElementById('mfaForm').addEventListener('submit', verifyMfa);
     document.getElementById('analyticsRefreshButton').addEventListener('click', loadMonthlyMetrics);
+    document.getElementById('sitewideReportButton').addEventListener('click', downloadSitewideReport);
+    document.getElementById('instructorReportButton').addEventListener('click', downloadInstructorReport);
+    document.getElementById('reportInstructorSelect').addEventListener('change', (event) => {
+      document.getElementById('instructorReportButton').disabled = !event.currentTarget.value;
+    });
     document.getElementById('paystackRefreshButton').addEventListener('click', loadPaystackOrders);
     document.getElementById('bunnyRefreshButton').addEventListener('click', loadBunnyOverview);
     document.getElementById('providerAuditRefreshButton').addEventListener('click', loadProviderAudit);

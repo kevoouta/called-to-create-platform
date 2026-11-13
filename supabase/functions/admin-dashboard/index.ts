@@ -3,6 +3,8 @@ interface AdminRequest {
     | 'session_check'
     | 'overview'
     | 'monthly_metrics'
+    | 'report_instructors'
+    | 'instructor_report'
     | 'content_list'
     | 'audit_list'
     | 'audit_detail'
@@ -17,6 +19,7 @@ interface AdminRequest {
     | 'bunny_update_video'
     | 'bunny_delete_video';
   entityId?: string;
+  instructor?: unknown;
   auditId?: number;
   fields?: unknown;
   privateContent?: unknown;
@@ -549,6 +552,32 @@ async function getMonthlyMetrics() {
   return { months: result };
 }
 
+async function getReportInstructors() {
+  const result = await adminJsonRequest(
+    'courses?select=instructor&instructor=not.is.null&order=instructor.asc',
+  );
+  if (!Array.isArray(result)) throw new Error('Supabase returned invalid instructor data.');
+  const instructors = [...new Set(
+    result
+      .map((course) => typeof course.instructor === 'string' ? course.instructor.trim() : '')
+      .filter(Boolean),
+  )];
+  return { instructors };
+}
+
+async function getInstructorReport(value: unknown) {
+  if (typeof value !== 'string' || value.trim().length === 0 || value.trim().length > 160) {
+    throw new HttpError('Select a valid instructor.', 400);
+  }
+  const instructor = value.trim();
+  const result = await adminJsonRequest('rpc/admin_instructor_report', {
+    method: 'POST',
+    body: JSON.stringify({ p_instructor: instructor }),
+  });
+  if (!Array.isArray(result)) throw new Error('Supabase returned invalid instructor report data.');
+  return { instructor, courses: result };
+}
+
 function requireRecord(value: unknown, label: string): JsonRecord {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new HttpError(`${label} must be an object.`, 400);
@@ -1022,6 +1051,8 @@ async function handleRequest(request: Request) {
         'session_check',
         'overview',
         'monthly_metrics',
+        'report_instructors',
+        'instructor_report',
         'content_list',
         'audit_list',
         'audit_detail',
@@ -1060,6 +1091,12 @@ async function handleRequest(request: Request) {
         break;
       case 'monthly_metrics':
         result = await getMonthlyMetrics();
+        break;
+      case 'report_instructors':
+        result = await getReportInstructors();
+        break;
+      case 'instructor_report':
+        result = await getInstructorReport(body.instructor);
         break;
       case 'content_list':
         result = await getContentList();

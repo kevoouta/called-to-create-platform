@@ -98,7 +98,7 @@ The function checks enrollment on every lesson-video and download request. It re
 
 ## Admin dashboard
 
-`admin.html` is an administrator-only dashboard for Supabase operations, course and shop content, Paystack orders/refunds, Bunny Stream videos, and monthly site/business insights. It does not expose customer contact details or provide an unrestricted SQL console. Course/product saves are atomic with their content-audit snapshots. Provider actions are recorded in `admin_action_audit`; full Paystack refunds require typing the exact payment reference, and Bunny video deletion requires typing the exact video ID. A processed refund changes the order to `refunded` and revokes Paystack-created access when no other paid order grants the same course. Pending refunds do not revoke access until Paystack confirms them.
+`admin.html` is an administrator-only dashboard for Supabase operations, course and shop content, Paystack orders/refunds, Bunny Stream videos, monthly site/business insights, and downloadable reports. Sitewide CSV reports cover up to 12 months of aggregated business, traffic, download, and performance metrics. Instructor CSV reports provide lifetime enrollments, course order counts, and sales/refund totals per course. Reports contain no customer contact details, and the dashboard does not provide an unrestricted SQL console. Course/product saves are atomic with their content-audit snapshots. Provider actions are recorded in `admin_action_audit`; full Paystack refunds require typing the exact payment reference, and Bunny video deletion requires typing the exact video ID. A processed refund changes the order to `refunded` and revokes Paystack-created access when no other paid order grants the same course. Pending refunds do not revoke access until Paystack confirms them.
 
 The dashboard's monthly reports retain up to 12 months of aggregated counts. Public-page telemetry records only an allowlisted page path and browser performance measurements; it does not store account IDs, visitor IDs, or query strings. Download metrics count successful signed-link issuance, not completed file transfers. Browser performance measurements are approximate and may be absent when a browser does not support the relevant APIs. Public telemetry is best-effort and should not be used as an authoritative billing or security record.
 
@@ -111,7 +111,7 @@ To enable it:
    supabase secrets set ADMIN_USER_IDS=ADMIN_AUTH_USER_UUID
    ```
 
-3. Apply pending Supabase migrations in timestamp order. The admin content editor migration depends on `20261111100000_protect_course_content.sql`; the provider and analytics migration adds refund/audit tables and the monthly metrics RPC.
+3. Apply pending Supabase migrations in timestamp order. The admin content editor migration depends on `20261111100000_protect_course_content.sql`; the provider and analytics migration adds refund/audit tables and the monthly metrics RPC; `20261113090000_admin_reporting.sql` adds the instructor report aggregation.
 4. Configure the provider credentials as server-only Edge Function secrets. `PAYSTACK_SECRET_KEY` is also used by checkout; `BUNNY_STREAM_LIBRARY_ID` and `BUNNY_STREAM_TOKEN_AUTH_KEY` are used by course streaming. Add the separate Bunny Stream library API key for the admin provider integration:
 
    ```sh
