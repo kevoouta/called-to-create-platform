@@ -12,6 +12,7 @@ const excludedDirectories = new Set([
   '.github',
   '.vscode',
   'dist',
+  'netlify',
   'node_modules',
   'partials',
   'scripts',
@@ -22,6 +23,7 @@ const excludedExtensions = new Set(['.md', '.sql', '.toml']);
 const footer = await readFile(footerPath, 'utf8');
 const paystackScript = '  <script src="https://js.paystack.co/v2/inline.js"></script>';
 const sharedCartScript = '  <script src="shared-cart.js"></script>';
+const betaAuthScript = '  <script src="beta-auth.js"></script>';
 await rm(outputDirectory, { recursive: true, force: true });
 await mkdir(outputDirectory, { recursive: true });
 
@@ -80,6 +82,11 @@ for (const entry of entries) {
       }
       html = html.replace(/<\/body>/i, `${cartScripts.join('\n')}\n</body>`);
     }
+
+    if ((html.match(/<\/body>/gi) ?? []).length !== 1) {
+      throw new Error(`${entry.name} must contain exactly one closing body tag.`);
+    }
+    html = html.replace(/<\/body>/i, `${betaAuthScript}\n</body>`);
 
     await writeFile(outputPath, html);
     continue;

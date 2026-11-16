@@ -533,6 +533,7 @@
     const SUPABASE_URL = 'https://ecbftpfbbfvcxreszsfo.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_AQZBPX4R8Q4IxQnKO2euYw_IWwlxlb9';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = supabaseClient;
     const metrics = [
       ['courses', 'Courses'],
       ['products', 'Shop products'],

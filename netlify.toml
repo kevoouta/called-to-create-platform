@@ -2,6 +2,10 @@
   publish = "dist"
   command = "node scripts/build.mjs"
 
+[[edge_functions]]
+  function = "beta-gate"
+  path = "/*"
+
 # Automatically handle clean URLs (allows visiting /explore instead of /explore.html)
 # Netlify resolves the file if it exists; this rewrite keeps the path from looping back on itself.
 [[redirects]]

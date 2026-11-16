@@ -83,6 +83,19 @@ async function getAuthenticatedUser(request: Request) {
   return user as { id: string; email?: string };
 }
 
+async function requireBetaAccess(userId: string) {
+  const query = new URLSearchParams({
+    select: 'id',
+    auth_user_id: `eq.${userId}`,
+    status: 'eq.approved',
+    limit: '1',
+  });
+  const signups = await adminRequest(`beta_tester_signups?${query}`);
+  if (!Array.isArray(signups) || signups.length === 0) {
+    throw new Response('Approved beta access is required.', { status: 403 });
+  }
+}
+
 function normalizeItemIds(value: unknown, kind: CheckoutKind): string[] {
   if (!Array.isArray(value) || value.length === 0 || value.length > 20) {
     throw new Response('Select between 1 and 20 items.', { status: 400 });
@@ -491,6 +504,7 @@ Deno.serve(async (request: Request) => {
     }
 
     const user = await getAuthenticatedUser(request);
+    await requireBetaAccess(user.id);
     const result = body.action === 'initialize'
       ? await initializeCheckout(user, body)
       : body.action === 'verify'

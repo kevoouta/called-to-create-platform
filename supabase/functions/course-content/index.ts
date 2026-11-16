@@ -119,6 +119,19 @@ async function requireEnrollment(userId: string, courseId: string) {
   }
 }
 
+async function requireBetaAccess(userId: string) {
+  const query = new URLSearchParams({
+    select: 'id',
+    auth_user_id: `eq.${userId}`,
+    status: 'eq.approved',
+    limit: '1',
+  });
+  const signups = await adminRequest(`beta_tester_signups?${query}`);
+  if (!Array.isArray(signups) || signups.length === 0) {
+    throw new HttpError('Approved beta access is required.', 403);
+  }
+}
+
 async function getCourseContent(courseId: string) {
   const query = new URLSearchParams({
     select: 'curriculum,assets',
@@ -282,12 +295,13 @@ async function handleRequest(request: Request) {
       throw new HttpError('Invalid request body.', 400);
     }
     const courseId = validateCourseId(body.courseId);
+    const user = await getAuthenticatedUser(request);
+    await requireBetaAccess(user.id);
     if (body.action === 'preview_video') {
       const videoId = getBunnyVideoId(await getPublicCoursePreview(courseId));
       return response({ videoUrl: await signVideo(videoId) }, 200, origin);
     }
 
-    const user = await getAuthenticatedUser(request);
     await requireEnrollment(user.id, courseId);
     const courseContent = await getCourseContent(courseId);
 

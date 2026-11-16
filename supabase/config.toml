@@ -1,5 +1,13 @@
 project_id = "ecbftpfbbfvcxreszsfo"
 
+[auth]
+site_url = "https://called2create.africa"
+additional_redirect_urls = [
+  "https://called2create.africa/login.html",
+  "http://localhost:5502/login.html",
+  "https://studious-goldfish-xrpqr94jxjv724rj-5501.app.github.dev/library.html",
+]
+
 [functions.paystack-checkout]
 verify_jwt = false
 

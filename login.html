@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beta Tester Sign In | Called to Create</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Decalotype:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              forest: '#132519',
+              frost: '#98A869',
+              gray: '#212121',
+              white: '#FFFFFF',
+            }
+          },
+          fontFamily: {
+            heading: ['"Bebas Neue"', 'sans-serif'],
+            sans: ['Decalotype', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <script src="site-analytics.js" defer></script>
+</head>
+<body class="bg-brand-forest text-brand-white font-sans antialiased min-h-screen relative bg-[url('Background.png')] bg-repeat bg-center">
+  <div class="fixed inset-0 bg-brand-forest/95 pointer-events-none -z-10"></div>
+  <main class="min-h-screen flex flex-col items-center justify-center px-6 py-12">
+    <a href="beta.html" class="mb-8 inline-block">
+      <img src="C2C Logo (White).png" alt="Called to Create" class="h-16 w-auto" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <span class="hidden text-3xl font-heading tracking-widest">CALLED TO CREATE</span>
+    </a>
+
+    <section class="w-full max-w-md bg-brand-gray border border-gray-800 rounded-3xl p-8 md:p-10 space-y-6">
+      <div class="space-y-2 text-center">
+        <span class="text-xs text-brand-frost font-bold uppercase tracking-widest">Beta Tester Access</span>
+        <h1 class="text-4xl font-heading tracking-wide">Welcome Back</h1>
+        <p class="text-xs text-gray-400 leading-relaxed">Sign in with the verified email address you used to register for the beta. Access is enabled after your application is approved.</p>
+      </div>
+
+      <div class="flex justify-center gap-8 border-b border-gray-800">
+        <button id="loginTab" type="button" class="text-lg font-heading text-brand-frost border-b-2 border-brand-frost pb-2">Sign In</button>
+        <button id="signupTab" type="button" class="text-lg font-heading text-gray-400 hover:text-brand-white pb-2">Create Account</button>
+      </div>
+
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label for="loginEmail" class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Email Address</label>
+          <input id="loginEmail" type="email" autocomplete="email" required class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-brand-frost">
+        </div>
+        <div>
+          <label for="loginPassword" class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Password</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" required class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-brand-frost">
+        </div>
+        <button id="loginSubmitBtn" type="submit" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90">Sign In</button>
+      </form>
+
+      <form id="signupForm" class="hidden space-y-4">
+        <div>
+          <label for="signupName" class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Full Name</label>
+          <input id="signupName" type="text" autocomplete="name" required class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-brand-frost">
+        </div>
+        <div>
+          <label for="signupEmail" class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Beta Signup Email</label>
+          <input id="signupEmail" type="email" autocomplete="email" required class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-brand-frost">
+        </div>
+        <div>
+          <label for="signupPassword" class="text-[10px] text-brand-frost font-bold uppercase tracking-widest block mb-2">Password</label>
+          <input id="signupPassword" type="password" autocomplete="new-password" minlength="8" required class="w-full bg-brand-forest border border-gray-800 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-brand-frost">
+        </div>
+        <button id="signupSubmitBtn" type="submit" class="w-full bg-brand-frost text-brand-forest font-bold py-3.5 rounded-2xl text-xs hover:bg-opacity-90">Create Account</button>
+      </form>
+
+      <p id="accessStatus" class="hidden text-xs leading-relaxed text-center" aria-live="polite"></p>
+      <button id="accessSignOutBtn" type="button" class="hidden mx-auto text-xs text-gray-400 underline hover:text-brand-white">Sign out to use a different account</button>
+      <p class="text-[11px] text-gray-500 text-center">Need to register your interest? <a href="beta.html" class="text-brand-frost underline">Visit the beta page</a>.</p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://ecbftpfbbfvcxreszsfo.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_AQZBPX4R8Q4IxQnKO2euYw_IWwlxlb9';
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const statusText = document.getElementById('accessStatus');
+    const signOutButton = document.getElementById('accessSignOutBtn');
+    const loginTab = document.getElementById('loginTab');
+    const signupTab = document.getElementById('signupTab');
+    const requestedNextPath = new URLSearchParams(location.search).get('next');
+    let safeNextPath = '/index.html';
+    let isAdminDestination = false;
+    if (requestedNextPath) {
+      try {
+        const destination = new URL(requestedNextPath, location.origin);
+        if (
+          destination.origin === location.origin
+          && !['/login.html', '/beta.html'].includes(destination.pathname)
+        ) {
+          safeNextPath = `${destination.pathname}${destination.search}`;
+          isAdminDestination = destination.pathname === '/admin.html';
+        }
+      } catch (error) {
+        console.error('Ignoring invalid beta login return path:', error);
+      }
+    }
+
+    function showStatus(message, isError = false) {
+      statusText.textContent = message;
+      statusText.classList.remove('hidden', 'text-red-400', 'text-brand-frost');
+      statusText.classList.add(isError ? 'text-red-400' : 'text-brand-frost');
+    }
+
+    function switchTab(tab) {
+      const loginActive = tab === 'login';
+      loginForm.classList.toggle('hidden', !loginActive);
+      signupForm.classList.toggle('hidden', loginActive);
+      loginTab.className = loginActive
+        ? 'text-lg font-heading text-brand-frost border-b-2 border-brand-frost pb-2'
+        : 'text-lg font-heading text-gray-400 hover:text-brand-white pb-2';
+      signupTab.className = loginActive
+        ? 'text-lg font-heading text-gray-400 hover:text-brand-white pb-2'
+        : 'text-lg font-heading text-brand-frost border-b-2 border-brand-frost pb-2';
+      statusText.classList.add('hidden');
+    }
+
+    async function checkBetaAccess(session) {
+      if (!session) return false;
+      window.syncBetaSessionCookie?.(session);
+
+      const { error: linkError } = await window.supabaseClient.rpc('link_beta_tester_signup');
+      if (linkError) throw linkError;
+
+      const { data, error } = await window.supabaseClient.rpc('has_beta_access');
+      if (error) throw error;
+      return data === true;
+    }
+
+    async function continueIfApproved(session) {
+      try {
+        window.syncBetaSessionCookie?.(session);
+        if (isAdminDestination || await checkBetaAccess(session)) {
+          location.replace(safeNextPath);
+          return true;
+        }
+        showStatus('Your account is not approved for beta access yet. Make sure you used the same verified email as your beta signup; we will enable access after approval.');
+        signOutButton.classList.remove('hidden');
+      } catch (error) {
+        console.error('Could not check beta access:', error);
+        showStatus('We could not verify beta access right now. Please try again shortly.', true);
+      }
+      return false;
+    }
+
+    signOutButton.addEventListener('click', async () => {
+      try {
+        const { error } = await window.supabaseClient.auth.signOut();
+        if (error) throw error;
+        signOutButton.classList.add('hidden');
+        showStatus('You are signed out. Sign in with another account or create one.');
+      } catch (error) {
+        showStatus('Could not sign out. Please try again.', true);
+        console.error('Could not sign out of the beta account:', error);
+      }
+    });
+
+    loginTab.addEventListener('click', () => switchTab('login'));
+    signupTab.addEventListener('click', () => switchTab('signup'));
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      submitBtn.disabled = true;
+      showStatus('Signing in...');
+
+      try {
+        const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+          email: document.getElementById('loginEmail').value.trim(),
+          password: document.getElementById('loginPassword').value,
+        });
+
+        if (error) {
+          showStatus(error.message, true);
+        } else {
+          await continueIfApproved(data.session);
+        }
+      } catch (error) {
+        console.error('Could not sign in to the beta:', error);
+        showStatus('We could not sign in right now. Please try again.', true);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    signupForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const submitBtn = document.getElementById('signupSubmitBtn');
+      submitBtn.disabled = true;
+      showStatus('Creating your account...');
+
+      try {
+        const { data, error } = await window.supabaseClient.auth.signUp({
+          email: document.getElementById('signupEmail').value.trim(),
+          password: document.getElementById('signupPassword').value,
+          options: {
+            data: { full_name: document.getElementById('signupName').value.trim() },
+            emailRedirectTo: new URL('login.html', location.href).toString(),
+          },
+        });
+
+        if (error) {
+          showStatus(error.message, true);
+        } else if (data.session) {
+          await continueIfApproved(data.session);
+        } else {
+          showStatus('Account created. Verify your email, then sign in here. Beta access will be available after your application is approved.');
+        }
+      } catch (error) {
+        console.error('Could not create the beta account:', error);
+        showStatus('We could not create your account right now. Please try again.', true);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    window.supabaseClient.auth.getSession().then(async ({ data, error }) => {
+      if (error) {
+        console.error('Could not restore the beta tester session:', error);
+        showStatus('We could not restore your sign-in. Please sign in again.', true);
+      } else if (data.session) {
+        await continueIfApproved(data.session);
+      }
+    }).catch((error) => {
+      console.error('Could not restore the beta tester session:', error);
+      showStatus('We could not restore your sign-in. Please sign in again.', true);
+    });
+  </script>
+</body>
+</html>

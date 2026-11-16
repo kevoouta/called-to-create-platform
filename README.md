@@ -15,6 +15,21 @@ node scripts/build.mjs
 
 The generated site is written to `dist/`. In VS Code, **Terminal → Run Build Task** (Ctrl+Shift+B) runs the same command, and Live Server is configured to serve `dist/`. Netlify runs the build automatically before publishing `dist/`.
 
+The directly shared `beta.html` page stores tester interest in `public.beta_tester_signups`. Apply `supabase/migrations/20261116060000_create_beta_tester_signups.sql` before collecting signups; public clients can submit but cannot read the table.
+
+## Private beta access
+
+Beta access is approval-based. The public `beta.html` page collects applications; testers create an account with the same verified email on `login.html`. `netlify/edge-functions/beta-gate.ts` protects site pages, while the beta access migration restricts course, product, enrollment, and payment-order queries. The login page and application, legal, and static asset paths remain public. The admin page requires a valid account and continues to enforce its existing administrator allowlist and MFA checks.
+
+To enable the gate:
+
+1. Configure the Netlify site environment with `SUPABASE_URL` and `SUPABASE_ANON_KEY`, using the project URL and existing publishable key. These variables are read by the Netlify Edge Function.
+2. Set the Supabase Auth Site URL to `https://called2create.africa` and allow `https://called2create.africa/login.html` as a redirect (plus `http://localhost:5502/login.html` for local testing).
+3. Apply `supabase/migrations/20261116080000_add_approved_beta_access.sql`, deploy the `course-content` and `paystack-checkout` Supabase functions, and deploy the site with the Netlify Edge Function. Coordinate these changes; the protected site requires both the database functions and the Netlify gate to be live.
+4. Review applications in Supabase Table Editor → `beta_tester_signups`. Set `status` to `approved` for an applicant. Their account is linked by verified email; access becomes available after they sign in again. Auth confirmation emails return to the public login page.
+
+Only the Netlify Edge Function should decide whether a page can be served. The browser cookie is a session token, not an approval flag; the Edge Function verifies it with Supabase and checks approval. The database policies and protected Supabase functions independently enforce beta approval. Do not grant public or anonymous read access to beta applications.
+
 ## Paystack checkout
 
 The course and digital-asset cart drawers open Paystack Inline checkout in a popup through the `paystack-checkout` Supabase Edge Function. The function calculates prices from Supabase, verifies completed transactions with Paystack, and records successful orders. Course orders also create the corresponding enrollment. Never put the Paystack secret key in browser code.
